@@ -4,7 +4,7 @@
 		"description": "Extract custom regex (email, phone number...) from a custom URL",
 		"args": [
 			{
-				"value": ["python3"],
+				"value": "python",
 				"description": "Alias, absolute or relative path to python 3"
 			},
 			{
@@ -24,7 +24,7 @@
 				"description": "Number of concurrent call for ressources (increase traffic)"
 			},
 			{
-				"value": "--level=1",
+				"value": "--level=2",
 				"description": "Depth of regex research in found paths (increase traffic and delay)"
 			},
 			{
@@ -50,6 +50,12 @@
 		"description": "Find leaks of emails",
 		"args": [
 			{
+				"value": "python"
+			},
+			{
+				"value": "-m"
+			},
+			{
 				"value": "h8mail",
 				"description": "Alias of the package"
 			},
@@ -58,7 +64,7 @@
 				"description": "The following argument will be the output file name"
 			},
 			{
-				"value": ".\\modules\\h8mail\\h8mail.csv",
+				"value": [".", "modules", "h8mail", "h8mail.csv"],
 				"description": "Name of the output file"
 			},
 			{
