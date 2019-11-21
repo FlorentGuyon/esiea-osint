@@ -24,7 +24,7 @@
 				"description": "Number of concurrent call for ressources (increase traffic)"
 			},
 			{
-				"value": "--level=3",
+				"value": "--level=1",
 				"description": "Depth of regex research in found paths (increase traffic and delay)"
 			},
 			{
