@@ -23,7 +23,7 @@ sudo apt install python3-pip
 
 Clone or download the project in your local machine.
 ```
-git clone https://github.com/FlorentGuyon/esiea-pfe-osint
+git clone https://github.com/FlorentGuyon/esiea-osint
 ```
 
 ### Configuring
