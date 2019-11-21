@@ -1,4 +1,4 @@
-# ESIEA | Projet de fin d'études - OSINT
+# ESIEA | OSINT Project
 
 This project is an OSINT tool based on open source python scripts (called "modules" in the following text).
 
@@ -21,7 +21,7 @@ sudo apt install python3-pip
 
 ### Installing
 
-Clone or download the project in your local machine and go on the root directory of the project.
+Clone or download the project in your local machine.
 ```
 git clone https://github.com/FlorentGuyon/esiea-pfe-osint
 ```
