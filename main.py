@@ -30,8 +30,10 @@ returncode = startModule(modules, "photon")
 
 # If the execution succed
 if returncode == 0 :
+	# Set the path to the result file
+	filePath = os.sep.join(modules["photon"]["args"][3]["value"], "exported.json")
 	# Open the result file
-	with open(modules["photon"]["args"][3]["value"] + "\\exported.json", "r") as file:
+	with open(filePath, "r") as file:
 		# Extract the text		
 		string = file.read()
 		# Load the data as an object
