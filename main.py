@@ -9,6 +9,9 @@ import sys
 # Manipulate system paths
 import os.path
 
+# Load JSON string as object
+from json import loads
+
 # Import specific functions for this script
 from libs.functions import loadModules, fatalError, startModule, warning
 
@@ -31,7 +34,7 @@ returncode = startModule(modules, "photon")
 # If the execution succed
 if returncode == 0 :
 	# Set the path to the result file
-	filePath = os.sep.join(modules["photon"]["args"][3]["value"], "exported.json")
+	filePath = os.sep.join([modules["photon"]["args"][3]["value"], "exported.json"])
 	# Open the result file
 	with open(filePath, "r") as file:
 		# Extract the text		

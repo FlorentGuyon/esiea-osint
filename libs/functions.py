@@ -154,7 +154,7 @@ def startModule(modules, moduleKey, extraArgs = None):
 				# Join the elements of the list with the correct system separator
 				arg = os.sep.join(arg)
 			# Turn the argument to a string
-			arg = str(arg["value"])
+			arg = str(arg)
 			# Insert the argument to the command list
 			command.append(arg)
 
