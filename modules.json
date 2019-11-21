@@ -1,0 +1,71 @@
+{
+	"photon": {
+		"name": "Photon",
+		"description": "Extract custom regex (email, phone number...) from a custom URL",
+		"args": [
+			{
+				"value": "D:\\Python\\python",
+				"description": "Path to python"
+			},
+			{
+				"value": ".\\modules\\photon\\photon.py",
+				"description": "Path to the script"
+			},
+			{
+				"value": "--url",
+				"description": "The following argument will be an URL"
+			},
+			{
+				"value": "www.esiea.fr",
+				"description": "URL to crawl"
+			},
+			{
+				"value": "--threads=1",
+				"description": "Number of concurrent call for ressources (increase traffic)"
+			},
+			{
+				"value": "--level=3",
+				"description": "Depth of regex research in found paths"
+			},
+			{
+				"value": "--keys",
+				"description": "Empty the arg value \"--keys\" to stop looking for API Keys and Hashes"
+			},
+			{
+				"value": "--regex",
+				"description": "The following argument will be a regex dictionary"
+			},
+			{
+				"value": "{\"email\": \"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-]+\", \"phone number\": \"\\(?\\+?[0-9]{1,4}\\)?[1-9] [0-9]{2} [0-9]{2} [0-9]{2} [0-9]{2}\"}",
+				"description": "Dictionary of regex to research"
+			},
+			{
+				"value": "--export=json",
+				"description": "JSON or CSV, the main script use the json format"
+			}
+		]
+	},
+	"h8mail": {
+		"name": "H8mail",
+		"description": "Find leaks of emails",
+		"requirements": ".\\modules\\h8mail\\requirements.txt",
+		"args": [
+			{
+				"value": "h8mail",
+				"description": "Alias of the package"
+			},
+			{
+				"value": "--output",
+				"description": "The following argument will be the output file name"
+			},
+			{
+				"value": ".\\modules\\h8mail\\h8mail.csv",
+				"description": "Name of the output file"
+			},
+			{
+				"value": "--hide",
+				"description": "Hide the end of the leaks on the prompt"
+			}
+		]
+	}
+}
