@@ -47,11 +47,13 @@ You can download the requirements as follows:
 sudo python3 -m pip install --upgrade -r requirements.txt
 ```
 
+Open the "modules.json" file and change the arguments value as you need. The arguments description can help you.
+
 ### Running
 
 When the requirements are downloaded, you can run the main script as follows:
 ```
-python3 main.py www.myWebSite.com
+python3 main.py
 ```
 
 ## Authors
