@@ -4,20 +4,20 @@
 		"description": "Extract custom regex (email, phone number...) from a custom URL",
 		"args": [
 			{
-				"value": "D:\\Python\\python",
-				"description": "Path to python"
+				"value": ["python3"],
+				"description": "Alias, absolute or relative path to python 3"
 			},
 			{
-				"value": ".\\modules\\photon\\photon.py",
-				"description": "Path to the script"
+				"value": ["modules", "photon", "photon.py"],
+				"description": "Alias, absolute or relative path to the main script of the photon module"
 			},
 			{
 				"value": "--url",
-				"description": "The following argument will be an URL"
+				"description": "The following argument must be the target URL"
 			},
 			{
 				"value": "www.esiea.fr",
-				"description": "URL to crawl"
+				"description": "Target URL, do not add \"http://\""
 			},
 			{
 				"value": "--threads=1",
@@ -25,15 +25,15 @@
 			},
 			{
 				"value": "--level=3",
-				"description": "Depth of regex research in found paths"
+				"description": "Depth of regex research in found paths (increase traffic and delay)"
 			},
 			{
 				"value": "--keys",
-				"description": "Empty the arg value \"--keys\" to stop looking for API Keys and Hashes"
+				"description": "Empty the arg value \"--keys\" to stop looking for API keys and hashes"
 			},
 			{
 				"value": "--regex",
-				"description": "The following argument will be a regex dictionary"
+				"description": "The following argument must be the regex dictionary to research"
 			},
 			{
 				"value": "{\"email\": \"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-]+\", \"phone number\": \"\\(?\\+?[0-9]{1,4}\\)?[1-9] [0-9]{2} [0-9]{2} [0-9]{2} [0-9]{2}\"}",
@@ -48,7 +48,6 @@
 	"h8mail": {
 		"name": "H8mail",
 		"description": "Find leaks of emails",
-		"requirements": ".\\modules\\h8mail\\requirements.txt",
 		"args": [
 			{
 				"value": "h8mail",

@@ -8,8 +8,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Requirements
 
-You can run the main script with either Python 2 or 3, but some modules need one specific version of Python. 
-So, download Python 2 and Python 3.
+The main script uses Python 3 so, you must download the latest version of Python 3.
 
 * https://www.python.org/downloads/source/
 
@@ -17,34 +16,42 @@ Some modules have requirements, the main script download the requirements automa
 Python requirements are downloaded with the paquet manager "Pip".
 Download pip with the following command:
 ```
-python get-pip.py
+sudo apt install python3-pip
 ```
 
 ### Installing
 
-Clone or download the project in your local machine.
+Clone or download the project in your local machine and go on the root directory of the project.
+```
+git clone https://github.com/FlorentGuyon/esiea-pfe-osint
+```
 
 ### Configuring
 
-Open the file modules.json and setup the "args value" according to your needs.
-The "args description" can help you.
+The scripts in this project use the alias "python3" to run the version 3 of Python. This alias is automatically defined on some systems.
+If, by running the command "python3" in a prompt, you got an error, define the alias as follows:
+
+Windows(10):
+```
+doskey python3={ABSOLUTE PATH TO "python.exe" version 3}
+```  
+
+Go on the root directory of this project and run the setup script as follows:
+```
+python3 setup.py
+```
+
+The setup scipt will create a requirements file. Make sure to download or upgrade all the requirements.
+You can download the requirements as follows:
+```
+sudo python3 -m pip install --upgrade -r requirements.txt
+```
 
 ### Running
 
-Example:
+When the requirements are downloaded, you can run the main script as follows:
 ```
-python main.py www.myWebSite.com
-```
-
-* "python" is an alias defined in the PATH environment variable of your local machine.
-* "main.py" is the name of the main script (.py means it's a Python script). If you're not located on the root directory of this project, you must write the exact relatif or absolut path to this file. 
-Exemple on a Windows environment:
-```
-D:\\myFolder\\mySubFolder\\main.py
-```
-Or, if you are already located on "D:\\myfolder":
-```
-.\\mySubFolder\\main.py
+python3 main.py www.myWebSite.com
 ```
 
 ## Authors
