@@ -72,5 +72,21 @@
 				"description": "Hide the end of the leaks on the prompt"
 			}
 		]
+	},
+	"spiderfoot": {
+		"name": "SpiderFoot",
+		"description": "Research domain name, email or IP addresses on several sources",
+		"args": [
+			{
+				"value": "py"
+			},
+			{
+				"value": "-2"
+			},
+			{
+				"value": ["modules", "spiderfoot", "api.py"],
+				"description": "Path to the API between the main script and the spiderfoot module"
+			}
+		]
 	}
 }

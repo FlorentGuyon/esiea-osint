@@ -147,16 +147,22 @@ def startModule(modules, moduleKey, extraArgs = None):
 
 	# If the function has extra arguments
 	if extraArgs != None:
-		# Add the extra arguments to the list
-		for arg in extraArgs:
-			# If the current argument is a list
-			if type(arg) is list:
-				# Join the elements of the list with the correct system separator
-				arg = os.sep.join(arg)
-			# Turn the argument to a string
-			arg = str(arg)
-			# Insert the argument to the command list
-			command.append(arg)
+		# If there are several arguments
+		if type(extraArgs) is list:
+			# For each of the arguments
+			for arg in extraArgs:
+				# If the current argument is a list
+				if type(arg) is list:
+					# Join the elements of the list with the correct system separator
+					arg = os.sep.join(arg)
+				# Turn the argument to a string
+				arg = str(arg)
+				# Insert the argument to the command list
+				command.append(arg)
+		# If there is only one argument
+		else:
+			# Add the argyument to the command list
+			command.append(extraArgs)
 
 	# Print the final command
 	print("\n" + " ".join(command))

@@ -9,11 +9,13 @@ import sys
 # Manipulate system paths
 import os.path
 
-# Load JSON string as object
-from json import loads
-
 # Import specific functions for this script
 from libs.functions import loadModules, fatalError, startModule, warning
+
+## PHOTON -----------------------------------------------------------------------------------------
+
+# Load JSON string as object
+from json import loads
 
 ### MAIN --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -26,7 +28,7 @@ modules = loadModules()
 ## PHOTON -----------------------------------------------------------------------------------------
 
 # Set the final variable 
-result = None
+result = None#{"email": ["guyon@et.esiea.fr", "innocenti@et.esiea.fr"]}#None
 
 # Get the return code of the module execution
 returncode = startModule(modules, "photon")
@@ -64,7 +66,7 @@ else:
 	# Print a warning message
 	warning("The \"photon\" module exits with an error.")
 
-## H8MAIL -----------------------------------------------------------------------------------------
+## H8MAIL && SPIDERFOOT -----------------------------------------------------------------------------------------
 
 # If the execution of the "photon" module succed
 if result != None:
@@ -81,9 +83,13 @@ if result != None:
 	if emails != "":
 		# Start the h8mail module with the email list
 		startModule(modules, "h8mail", ["--target", emails])
+		# Start the spiderfoot module with the email list
+		startModule(modules, "spiderfoot", emails)
 	# If the email list is empty
 	else:
 		# Print a warning message
 		warning("No email to scan with the module \"h8mail\".")
+		# Print a warning message
+		warning("No email to scan with the module \"spiderfoot\".")
 
 ## ------------------------------------------------------------------------------------------------
