@@ -12,14 +12,6 @@
 				"description": "Alias, absolute or relative path to the main script of the photon module"
 			},
 			{
-				"value": "--url",
-				"description": "The following argument must be the target URL"
-			},
-			{
-				"value": "www.esiea.fr",
-				"description": "Target URL, do not add \"http://\""
-			},
-			{
 				"value": "--threads=1",
 				"description": "Number of concurrent call for ressources (increase traffic)"
 			},

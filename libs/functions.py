@@ -20,9 +20,11 @@ modulesConfigurationPath = "modules.json"
 ### FUNCTIONS ---------------------------------------------------------------------------------------------------------------------------------------
 
 ## EXIT SCRIPT AFTER A FATAL ERROR
-def fatalError(msg):
-	# Print the message
-	print(msg)
+def fatalError(msg = None):
+	# If there is a message to display
+	if msg != None:
+		# Print the message
+		print(msg)
 	# Quit the main script
 	exit()
 

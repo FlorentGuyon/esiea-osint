@@ -28,14 +28,6 @@ git clone https://github.com/FlorentGuyon/esiea-osint
 
 ### Configuring
 
-The scripts in this project use the alias "python3" to run the version 3 of Python. This alias is automatically defined on some systems.
-If, by running the command "python3" in a prompt, you got an error, define the alias as follows:
-
-Windows(10):
-```
-doskey python3={ABSOLUTE PATH TO "python.exe" version 3}
-```  
-
 Go on the root directory of this project and run the setup script as follows:
 ```
 python3 setup.py
@@ -47,7 +39,7 @@ You can download the requirements as follows:
 sudo python3 -m pip install --upgrade -r requirements.txt
 ```
 
-Open the "modules.json" file and change the arguments value as you need. The arguments description can help you.
+Open the "modules.json" file and change the arguments value as you need. The arguments description can help you. The first argument is often a call to python, make sure to use the right alias depending on your system (example: "python", "python3", "py -3" <- Needs two arguments : "py" and "-3").
 
 ### Running
 

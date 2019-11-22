@@ -49,7 +49,7 @@ def launchScan(baseCriteria):
             s = result.json()
             if(s['meta'][5] != status):
                 status = s['meta'][5]
-                print("Scan of " + baseCriteria + "\t\t" + status)
+                print("  [" + status + "]\tScan of " + baseCriteria)
           
         #Put data into a pretty json
         exportParam={"ids": scanId}
@@ -59,7 +59,7 @@ def launchScan(baseCriteria):
         #
         with open(scanId + ".json", "w+") as json_file:
             json_file.write(out)
-            print("Results of " + baseCriteria + " scan loaded into " + scanId + ".json")
+            print("\nResults of " + baseCriteria + " scan loaded into " + scanId + ".json\n")
         return 0
     #
     else:
@@ -72,13 +72,13 @@ if __name__ == '__main__':
     jobs = []
     if sys.argv[1]:
         emails = sys.argv[1].split(',')
-        print("\nNumber of email to scan: " + str(len(emails)) + "\n")
+        print("\nNumber of data to scan: " + str(len(emails)) + "\n")
         if len(emails) > 1:
             for index in xrange(0, len(emails)):
                 p = multiprocessing.Process(target=launchScan, args=[emails[index]])
                 jobs.append(p)
                 p.start()
         else:
-            launchScan(sys.argv[1],sys.argv[1])
+            launchScan(sys.argv[1])
     else: 
         print("No valid target name. Please enter a valid name")
