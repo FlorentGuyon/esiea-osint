@@ -108,7 +108,7 @@ def main(argv):
 		# If the execution succed
 		if returncode == 0 :
 			# Set the path to the result file
-			filePath = os.sep.join([targetValue, "exported.json"])
+			filePath = os.sep.join(["modules", "photon", "results", "exported.json"])
 			# Open the result file
 			with open(filePath, "r") as file:
 				# Extract the text		

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import requests
 import json
 import time
@@ -57,9 +59,9 @@ def launchScan(baseCriteria):
         j = json.loads(result.text)
         out = json.dumps(j, indent=4, separators=(',', ': '))
         #
-        with open(scanId + ".json", "w+") as json_file:
+        with open(os.sep.join(["modules", "spiderfoot", "results", baseCriteria.replace("\"", "") + ".json"]), "w+") as json_file:
             json_file.write(out)
-            print("\nResults of " + baseCriteria + " scan loaded into " + scanId + ".json\n")
+            print("\nResults of " + baseCriteria + " scan loaded into " + os.sep.join(["modules", "spiderfoot", "results", baseCriteria.replace("\"", "") + ".json"]) + "\n")
         return 0
     #
     else:

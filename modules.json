@@ -34,6 +34,14 @@
 			{
 				"value": "--export=json",
 				"description": "JSON or CSV, the main script use the json format"
+			},
+			{
+				"value": "--output",
+				"description": "The next argument will be the output directory"
+			},
+			{
+				"value": ["modules", "photon", "results"],
+				"description": "Path to the results"
 			}
 		]
 	},
