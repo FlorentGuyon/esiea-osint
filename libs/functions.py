@@ -167,7 +167,7 @@ def startModule(modules, moduleKey, extraArgs = None):
 			command.append(extraArgs)
 
 	# Print the final command
-	print("\n" + " ".join(command))
+	#print("\n" + " ".join(command))
 
 	# Save the result of the execution of the command
 	result = call(command)
@@ -177,3 +177,23 @@ def startModule(modules, moduleKey, extraArgs = None):
 
 	# Return the result of the execution
 	return result
+
+# Display an error message for wrong attribute types
+def wrongAttrType(self, attr, rightType, wrongVal):
+	print('"{}" attribute of "{}" class must be "{}", not "{}"'.format(
+		attr, 
+		self.__class__.__name__, 
+		rightType.__name__, 
+		wrongVal.__class__.__name__))
+	exit()
+
+# Extract data and parse them as JSON
+def extractJson(filePath):
+	# Open the result file
+	with open(filePath, "r") as file:
+		# Extract the text		
+		string = file.read()
+		# Load the data as an object
+		jsonFormat = json.loads(string)
+		# Return the result
+		return jsonFormat
