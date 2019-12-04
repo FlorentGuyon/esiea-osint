@@ -44,6 +44,7 @@ def launchScan(baseCriteria):
         s = result.json()
         scanId= s[1]
         status= ""
+        print("")
 
         #Waiting for scan to finish
         while status != "FINISHED":
@@ -52,18 +53,18 @@ def launchScan(baseCriteria):
             s = result.json()
             if(s['meta'][5] != status):
                 status = s['meta'][5]
-                print("  [" + status + "]\tScan of " + baseCriteria)
+                print("\t[" + status + "]\tScan of " + baseCriteria)
           
         #Put data into a pretty json
         exportParam={"ids": scanId}
         result = requests.post(url= API_ENDPOINT + "scanexportjsonmulti", data = exportParam)
         j = json.loads(result.text)
-        out = json.dumps(j, indent=4, separators=(',', ': '))
+        #out = json.dumps(j, indent=4, separators=(',', ': '))
         #
-        with open(os.sep.join(["modules", "spiderfoot", "results", baseCriteria.replace("\"", "") + ".json"]), "w+") as json_file:
-            json_file.write(out)
-            print("\nResults of " + baseCriteria + " scan loaded into " + os.sep.join(["modules", "spiderfoot", "results", baseCriteria.replace("\"", "") + ".json"]) + "\n")
-        return 0
+        #with open(os.sep.join([os.path.dirname(os.path.abspath(__file__)), "results", baseCriteria.replace("\"", "") + ".json"]), "w+") as json_file:
+        #    json_file.write(out)
+        #    print("\nResults of " + baseCriteria + " scan loaded into " + os.sep.join(["modules", "spiderfoot", "results", baseCriteria.replace("\"", "") + ".json"]) + "\n")
+        return j
     #
     else:
         print("The server in unreachable. Scan of " + baseCriteria + " cancelled.")
@@ -75,7 +76,6 @@ if __name__ == '__main__':
     jobs = []
     if sys.argv[1]:
         emails = sys.argv[1].split(',')
-        print("\nNumber of data to scan: " + str(len(emails)) + "\n")
         if len(emails) > 1:
             for index in xrange(0, len(emails)):
                 p = multiprocessing.Process(target=launchScan, args=[emails[index]])

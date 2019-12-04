@@ -3,14 +3,25 @@
 
 ### IMPORTS -----------------------------------------------------------------------------------------------------------------------------------------
 
-import os.path, json, subprocess
+import os, json, subprocess, platform
 
 ### CONFIG ------------------------------------------------------------------------------------------------------------------------------------------
 
 # Modules configuration
-modulesConfigurationPath = "modules.json"
+modulesConfigurationPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "..", "modules.json"])
 
 ### FUNCTIONS ---------------------------------------------------------------------------------------------------------------------------------------
+
+# Clear the shell
+def clear():
+	# If the current os is a windows
+	if platform.system() == "Windows":
+		# Use specific command
+		os.system("cls")
+	# Else if the current os is not a windows
+	else:
+		# Use generic command
+		os.system("clear")
 
 ## EXIT SCRIPT AFTER A FATAL ERROR
 def fatalError(msg = None):

@@ -163,6 +163,8 @@ def h8mail(user_args):
     if user_args.output_file:
         save_results_csv(user_args.output_file, breached_targets)
 
+    return breached_targets
+
 
 def main():
 
@@ -289,4 +291,8 @@ def main():
     if user_args.gen_config:
         gen_config_file()
         exit(0)
+
+    print(sys.argv)
+    print(user_args)
+
     h8mail(user_args)

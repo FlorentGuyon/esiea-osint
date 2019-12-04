@@ -356,25 +356,25 @@ class target:
             data = response.json()
             for d in data:
                 for field, k in d["_source"].items():
-                    if "User" in field and k is not None:
+                    if "User" in field and k != None:
                         self.data.append(("SCYLLA_USERNAME", k))
                         self.pwned += 1
-                    if "Email" in field and k is not None and user_query is not "email":
+                    if "Email" in field and k != None and user_query != "email":
                         self.data.append(("SCYLLA_EMAIL", k))
                         self.pwned += 1
-                    if "Password" in field and k is not None:
+                    if "Password" in field and k != None:
                         self.data.append(("SCYLLA_PASSWORD", k))
                         self.pwned += 1
-                    if "PassHash" in field and k is not None:
+                    if "PassHash" in field and k != None:
                         self.data.append(("SCYLLA_HASH", k))
                         self.pwned += 1
-                    if "PassSalt" in field and k is not None:
+                    if "PassSalt" in field and k != None:
                         self.data.append(("SCYLLA_HASHSALT", k))
                         self.pwned += 1
-                    if "IP" in field and k is not None:
+                    if "IP" in field and k != None:
                         self.data.append(("SCYLLA_LASTIP", k))
                         self.pwned += 1
-                    if "Domain" in field and k is not None:
+                    if "Domain" in field and k != None:
                         self.data.append(("SCYLLA_SOURCE", k))
                         self.pwned += 1
         except Exception as ex:
@@ -410,7 +410,7 @@ class target:
             for e in response["data"]["emails"]:
                 self.data.append(("HUNTER_RELATED", e["value"]))
                 b_counter += 1
-                if self.pwned is not 0:
+                if self.pwned != 0:
                     self.pwned += 1
             c.good_news(
                 "Found {num} related emails for {target} using hunter.io (private)".format(

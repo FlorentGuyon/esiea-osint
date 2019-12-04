@@ -6,7 +6,7 @@ from .RegexTool 		 import RegexTool
 from .shortCutUrl 		 import shortCutUrl
 
 # /lib
-from lib.download import download
+from ..lib.download import download
 
 class instagramSearchTool:
 		

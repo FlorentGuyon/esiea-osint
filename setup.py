@@ -11,6 +11,10 @@ if sys.version_info[0] < 3:
     # Quit the program
     exit()
 
+from libs.functions import clear
+
+clear()
+
 ### MAIN --------------------------------------------------------------------------------------------------------------------------------------------
 
 # Absolut path to the modules directory
@@ -82,3 +86,16 @@ if len(modulesList) > 0:
 # If no modules fond
 else:
 	print("No modules found at {}.".format(modulesPath))
+
+# Ask for the path to python 2
+python2 = input("\n Write the alias or the path to python2: ")
+# Set the path to the spiderfoot module server
+spiderfootServerPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "modules", "spiderfoot", "sf.py"])
+# Start the spiderfoot module server
+spiderfootServer = subprocess.Popen('{} "{}"'.format(python2, spiderfootServerPath), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+#fatalError("Impossible to start the spiderfoot server. Make sure that there is no other instance of sf.py running and that no other program use the port number 5001.")
+input("\n Servers are on. Keep this process open until you finished all your scans. Then press 'Enter'\n")
+# Close the spiderfoot module server
+spiderfootServer.terminate()
+# Display end message
+print(" Servers are off. You can quit this process.")

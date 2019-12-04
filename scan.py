@@ -3,7 +3,7 @@
 
 ### IMPORTS -----------------------------------------------------------------------------------------------------------------------------------------
 
-import sys, os.path, json
+import sys, os.path, json, getopt
 
 # Check the current version of Python
 if sys.version_info[0] < 3:
@@ -11,15 +11,24 @@ if sys.version_info[0] < 3:
     # Quit the program
     exit()
 
-# Manage arguments
-from getopt import getopt
-
-sys.path.append(os.path.abspath(os.sep.join(("modules", "littlebrother"))))
-
-from modules.littlebrother.core.searchInstagram import extractInstagram
-
-# Import specific functions for this script
 from libs.functions import *
+
+# Check if the requirements are up to date and if the spiderfoot server is on
+response = input("Have you already start the setup.py program ? [Y/n] : ")
+
+# If the setup script is not running
+if response == "n":
+	# Quit
+	exit()
+# If the setup script is already running
+else:
+	# Clear the shell and go on
+	clear()
+
+# Manage arguments
+from modules.littlebrother.core.searchInstagram import extractInstagram
+from modules.h8mail.api import callh8mail as h8mail
+from modules.spiderfoot.api import launchScan
 
 ## CONSTANTS --------------------------------------------------------------------------------------
 
@@ -167,12 +176,44 @@ class Email:
 	address = None
 	leaks = []
 
+	def scanLeaks(self):
+
+		leaks = h8mail("example@example.com")
+		leaks = [leak for leak in leaks if len(leak) == 2]
+
+		leakSource = None
+		leakType = None
+		leakValue = None
+
+		for leak in leaks:
+			(dataType, value) = leak
+			if value == "":
+				continue
+			if dataType == "SCYLLA_SOURCE":
+				leakSource = value
+			elif dataType == "SCYLLA_PASSWORD" or dataType == "SCYLLA_HASH":
+				leakType = str.lower(dataType.replace("SCYLLA_", ""))
+				leakValue = value
+
+				self.leaks.append({
+					"source": leakSource,
+					"type": leakType,
+					"value": leakValue
+				})
+
+
 	def export(self, indentation = 0):
 
 		lines = [
 			("\t" * indentation) + "Email {",
 			("\t" * indentation) + "\taddress:\t" + self.address,
-			("\t" * indentation) + "\tleaks:\t\t" + (",".join(self.leaks) if len(self.leaks) != 0 else "Unknow"),
+			("\t" * indentation) + "\tleaks: ["
+		]
+
+		lines += [("\t" * (indentation +2)) + str(leak) for leak in self.leaks] if len(self.leaks) != 0 else "Unknow"
+
+		lines += [
+			("\t" * indentation) + "\t]",
 			("\t" * indentation) + "}"
 		]
 
@@ -185,6 +226,8 @@ class Email:
 			self.address = address
 		else:
 			wrongAttrType(self, "address", str, address)
+
+		self.scanLeaks()
 
 	def __repr__(self):
 
@@ -265,13 +308,9 @@ class Person:
 		# Format the name
 		formatedFullName = '\"{}\"'.format(fullName)
 		# Start the spiderfoot module
-		startModule(modules, "spiderfoot", formatedFullName)
-		# Set the path to the results
-		filePath = os.sep.join(["modules", "spiderfoot", "results", fullName + ".json"])
-		# Extract the results
-		extractedResults = extractJson(filePath)
+		results = launchScan(formatedFullName)
 		# Scan all the results
-		for result in extractedResults:
+		for result in results:
 			# If the result is an account
 			if result["event_type"] == "ACCOUNT_EXTERNAL_OWNED":
 				# Formate results
@@ -292,8 +331,9 @@ class Person:
 				else:
 					# Create the new account
 					self.addAccount(Account(serviceName = serviceName, serviceCategory = serviceCategory, profileLink = profileLink))
-			# If the result is a username
-			if result["event_type"] == "USERNAME":
+			
+			# Else if the result is a username
+			elif result["event_type"] == "USERNAME":
 				# Add the new username
 				self.addUsernames(result["data"])
 
@@ -360,7 +400,7 @@ def main(argv):
 	# Test if the arguments are valid
 	try:
 		# Extract the arguments following this options
-		opts, args = getopt(argv, "hn:", ["help", "name="])
+		opts, args = getopt.getopt(argv, "hn:", ["help", "name="])
 	# If the arguments are invalid
 	except:
 		# Display an help message
@@ -393,6 +433,7 @@ def main(argv):
 				(firstname, lastname) = arg
 
 				target = Person(firstname = firstname, lastname = lastname)
+				target.addEmails("florent.guyon@protonmail.com")
 
 				print(target)
 
