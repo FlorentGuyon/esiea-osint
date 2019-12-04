@@ -17,6 +17,10 @@ if sys.version_info[0] < 3:
 modulesPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "modules"])
 # List of modules
 modulesList = os.listdir(modulesPath)
+# Set the index of the pip module
+pipIndex = modulesList.index("pip")
+# Place pip in first place to upgrade its tools
+modulesList[0], modulesList[pipIndex] = modulesList[pipIndex], modulesList[0]
 
 # If there at least one module
 if len(modulesList) > 0:
@@ -32,8 +36,8 @@ if len(modulesList) > 0:
 		# If a requirements file exist
 		if os.path.exists(filePath):
 			# Print the current module name
-			sys.stdout.write("\t■ {}".format(module) + " " * (len(longestModuleName) - len(module)) + "\t\t")
-			
+			sys.stdout.write("\t■ {}".format(module) + " " * (len(longestModuleName) - len(module)) + "\t\t   0%\t[          ]")
+			sys.stdout.flush()			
 			# Open the requirements file
 			with open(filePath, "r") as file:
 				# Set the list of packages
@@ -48,11 +52,11 @@ if len(modulesList) > 0:
 				# For each package in the list
 				for package in packages:
 					# Set the command
-					command = sys.executable + " -m pip install " + package
+					command = sys.executable + " -m pip install --upgrade " + package
 					# Check for linux systems
 					if platform.system() == "Linux":
 						# Add a sudo argument
-						command = "sudo " + command
+						command = "sudo -H " + command
 					# Start the download
 					output = subprocess.Popen(command.split(" "), stdout=open(os.devnull, "wb"), stderr=subprocess.PIPE)
 					# Get the errors
@@ -67,17 +71,13 @@ if len(modulesList) > 0:
 						currentPackageIndex += 1
 						# Set the current download progress for printing purpose
 						currentProgress = int(currentPackageIndex * 100 / packagesCount)
-						# If these is not the first package of the list
-						if (currentPackageIndex > 1):
-							# Erase the previous progress
-							sys.stdout.write("\b" * 20)
-							sys.stdout.flush()
 						# Print the new progress
-						sys.stdout.write("{}%\t[".format(currentProgress) + ("■" * int(currentProgress / 10)) + (" " * math.ceil((100 - currentProgress) / 10)) + "]{}".format("\n" if packagesCount == currentPackageIndex else ""))
+						sys.stdout.write("\b" * 18 + " {}%\t[".format(currentProgress) + ("■" * int(currentProgress / 10)) + (" " * math.ceil((100 - currentProgress) / 10)) + "]{}".format("\n" if packagesCount == currentPackageIndex else ""))
+						sys.stdout.flush()
 		
 		# If no requirements file found
 		else:
-			print("No requirements found for the {} module".format(module))
+			print("\nNo requirements found for the {} module".format(module))
 
 # If no modules fond
 else:
