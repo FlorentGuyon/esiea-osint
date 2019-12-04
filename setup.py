@@ -13,7 +13,13 @@ if sys.version_info[0] < 3:
 
 from libs.functions import clear
 
+# Ask for the path to python 2
+python2 = input("\n Write the alias or the path to python2: ")
+
 clear()
+
+# List of modules using python 2
+python2Modules = ["spiderfoot"]
 
 ### MAIN --------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -56,7 +62,7 @@ if len(modulesList) > 0:
 				# For each package in the list
 				for package in packages:
 					# Set the command
-					command = sys.executable + " -m pip install --upgrade " + package
+					command = (sys.executable if module not in python2Modules else python2) + " -m pip install --upgrade " + package
 					# Check for linux systems
 					if platform.system() == "Linux":
 						# Add a sudo argument
@@ -66,7 +72,7 @@ if len(modulesList) > 0:
 					# Get the errors
 					error = output.communicate()[1].decode()
 					# If there is at least one error
-					if error != "":
+					if error != "" and error[0:11] != "DEPRECATION":
 						# Print them
 						print("\n\n{}".format(error))
 					# If there is no error
@@ -87,8 +93,6 @@ if len(modulesList) > 0:
 else:
 	print("No modules found at {}.".format(modulesPath))
 
-# Ask for the path to python 2
-python2 = input("\n Write the alias or the path to python2: ")
 # Set the path to the spiderfoot module server
 spiderfootServerPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "modules", "spiderfoot", "sf.py"])
 # Start the spiderfoot module server

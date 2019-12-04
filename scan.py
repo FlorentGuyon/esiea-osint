@@ -14,7 +14,7 @@ if sys.version_info[0] < 3:
 from libs.functions import *
 
 # Check if the requirements are up to date and if the spiderfoot server is on
-response = input("Have you already start the setup.py program ? [Y/n] : ")
+response = input("Have you already start the setup.py program (in sudo mode) ? [Y/n] : ")
 
 # If the setup script is not running
 if response == "n":
