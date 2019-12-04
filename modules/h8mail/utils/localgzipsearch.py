@@ -43,14 +43,14 @@ def gzip_worker(filepath, target_list):
                                 local_breach_target(t, filepath, cnt, decoded)
                             )
                             c.good_news(
-                                f"Found occurrence [{filepath}] Line {cnt}: {decoded}"
+                                "Found occurrence [{filepath}] Line {cnt}: {decoded}"
                             )
                         except Exception as e:
                             c.bad_news(
-                                f"Got a decoding error line {cnt} - file: {filepath}"
+                                "Got a decoding error line {cnt} - file: {filepath}"
                             )
                             c.good_news(
-                                f"Found occurrence [{filepath}] Line {cnt}: {line}"
+                                "Found occurrence [{filepath}] Line {cnt}: {line}"
                             )
                             found_list.append(
                                 local_breach_target(t, filepath, cnt, str(line))
@@ -115,14 +115,14 @@ def local_search_single_gzip(files_to_parse, target_list):
                                 local_breach_target(t, file_to_parse, cnt, decoded)
                             )
                             c.good_news(
-                                f"Found occurrence [{file_to_parse}] Line {cnt}: {decoded}"
+                                "Found occurrence [{file_to_parse}] Line {cnt}: {decoded}"
                             )
                         except Exception as e:
                             c.bad_news(
-                                f"Got a decoding error line {cnt} - file: {file_to_parse}"
+                                "Got a decoding error line {cnt} - file: {file_to_parse}"
                             )
                             c.good_news(
-                                f"Found occurrence [{file_to_parse}] Line {cnt}: {line}"
+                                "Found occurrence [{file_to_parse}] Line {cnt}: {line}"
                             )
                             found_list.append(
                                 local_breach_target(t, file_to_parse, cnt, str(line))

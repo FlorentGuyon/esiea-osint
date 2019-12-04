@@ -178,7 +178,7 @@ class Email:
 
 	def scanLeaks(self):
 
-		leaks = h8mail("example@example.com")
+		leaks = h8mail(self.address)
 		leaks = [leak for leak in leaks if len(leak) == 2]
 
 		leakSource = None

@@ -15,12 +15,12 @@ def breachcomp_check(targets, breachcomp_path):
         st = os.stat(query_bin)
         os.chmod(query_bin, st.st_mode | stat.S_IEXEC)
         for t in targets:
-            c.info_news(f"Looking up {t.target} in BreachCompilation")
+            c.info_news("Looking up {} in BreachCompilation".format(t.target))
             procfd = subprocess.run([query_bin, t.target], stdout=subprocess.PIPE)
             try:
                 output = procfd.stdout.decode("cp437")
             except Exception as e:
-                c.bad_news(f"Could not decode bytes for {t.target} results")
+                c.bad_news("Could not decode bytes for {} results".format(t.target))
                 output = procfd.stdout
                 # print(output[:85], "[...]")
                 print(output)
@@ -31,9 +31,7 @@ def breachcomp_check(targets, breachcomp_path):
                     if ":" in line:
                         t.pwned += 1
                         t.data.append(("BC_PASS", re.split("[;:]",line)[-1]))
-                        c.good_news(
-                            "Found BreachedCompilation entry {line}".format(line=line)
-                        )
+                        c.good_news("Found BreachedCompilation entry {}".format(line))
         return targets
     except Exception as e:
         c.bad_news("Breach compilation")

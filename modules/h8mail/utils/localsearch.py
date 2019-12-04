@@ -24,13 +24,13 @@ def local_to_targets(targets, local_results, user_args):
                 t.data.append(
                     (
                         "LOCALSEARCH",
-                        f"[{os.path.basename(l.filepath)}] Line {l.line}: {l.content}".strip(),
+                        "[{os.path.basename(l.filepath)}] Line {l.line}: {l.content}".strip(),
                         l.content.strip(),
                     )
                 )
                 t.pwned += 1
                 if user_args.debug:
-                    c.debug_news(f"DEBUG: Found following content matching {t.target.target}")
+                    c.debug_news("DEBUG: Found following content matching {t.target.target}")
                     l.target.dump()
     return targets
 
@@ -69,14 +69,14 @@ def worker(filepath, target_list):
                                 local_breach_target(t, filepath, cnt, decoded)
                             )
                             c.good_news(
-                                f"Found occurrence [{filepath}] Line {cnt}: {decoded}"
+                                "Found occurrence [{filepath}] Line {cnt}: {decoded}"
                             )
                         except Exception as e:
                             c.bad_news(
-                                f"Got a decoding error line {cnt} - file: {filepath}"
+                                "Got a decoding error line {cnt} - file: {filepath}"
                             )
                             c.good_news(
-                                f"Found occurrence [{filepath}] Line {cnt}: {line}"
+                                "Found occurrence [{filepath}] Line {cnt}: {line}"
                             )
                             found_list.append(
                                 local_breach_target(t, filepath, cnt, str(line))
@@ -138,7 +138,7 @@ def local_search_single(files_to_parse, target_list):
             for cnt, line in enumerate(fp):
                 lines_left = lines_no - cnt
                 progress(
-                    cnt, lines_no, f"{cnt} lines checked - {lines_left} lines left"
+                    cnt, lines_no, "{cnt} lines checked - {lines_left} lines left"
                 )
                 for t in target_list:
                     if t in str(line):
@@ -148,14 +148,14 @@ def local_search_single(files_to_parse, target_list):
                                 local_breach_target(t, file_to_parse, cnt, decoded)
                             )
                             c.good_news(
-                                f"Found occurrence [{file_to_parse}] Line {cnt}: {decoded}"
+                                "Found occurrence [{file_to_parse}] Line {cnt}: {decoded}"
                             )
                         except Exception as e:
                             c.bad_news(
-                                f"Got a decoding error line {cnt} - file: {file_to_parse}"
+                                "Got a decoding error line {cnt} - file: {file_to_parse}"
                             )
                             c.good_news(
-                                f"Found occurrence [{file_to_parse}] Line {cnt}: {line}"
+                                "Found occurrence [{file_to_parse}] Line {cnt}: {line}"
                             )
                             found_list.append(
                                 local_breach_target(t, file_to_parse, cnt, str(line))

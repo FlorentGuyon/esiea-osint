@@ -137,7 +137,7 @@ def get_config_from_file(user_args):
                         )
             for k in config["h8mail"]:
                 if len((config["h8mail"][k])) != 0:
-                    c.good_news(f"Found {k} configuration key")
+                    c.good_news("Found {} configuration key".format(k))
         return config["h8mail"]
     except Exception as ex:
         c.bad_news("Problems occurred while trying to get configuration file")

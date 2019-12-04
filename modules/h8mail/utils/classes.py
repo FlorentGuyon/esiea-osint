@@ -573,11 +573,11 @@ class target:
             response = req.json()
             if req.status_code == 400:
                 c.bad_news(
-                    f"Got WLI API response code {req.status_code}: Invalid search type provided"
-                )
+                    "Got WLI API response code {}: Invalid search type provided"
+                ).format(req.status_code)
                 return
             elif req.status_code != 200:
-                c.bad_news(f"Got WLI API response code {req.status_code} (private)")
+                c.bad_news("Got WLI API response code {} (private)".format(req.status_code))
                 return
             if req.status_code == 200:
                 if response["Success"] is False:
@@ -624,7 +624,7 @@ class target:
             self.headers.popitem()
             response = req.json()
             if req.status_code != 200:
-                c.bad_news(f"Got WLI API response code {req.status_code} (public)")
+                c.bad_news("Got WLI API response code {} (public)".format(req.status_code))
                 return
             else:
                 c.good_news(

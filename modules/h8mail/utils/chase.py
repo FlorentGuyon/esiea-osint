@@ -13,8 +13,8 @@ def chase(target, user_args):
     chase_counter = 0
     if user_args.debug:
         print(c.fg.red, "\nCHASING DEBUG-----------")
-        print(f"Hunting targets from {target.target}")
-        print(f"Recursive Chase Stop is at {user_args.chase_limit}" + c.reset)
+        print("Hunting targets from {target.target}")
+        print("Recursive Chase Stop is at {user_args.chase_limit}" + c.reset)
     if user_args.chase_limit > 0:
         for d in target.data:
             if len(d) != 2:

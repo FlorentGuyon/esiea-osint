@@ -23,18 +23,18 @@ def print_summary(start_time, breached_targets):
     for t in breached_targets:
         if t.pwned != 0:
             print(
-                f"{t.target:^40} | ",
+                "{t.target:^40} | ",
                 c.fg.green,
                 "{:^40}".format("Breach Found (" + str(t.pwned) + " elements)"),
                 c.reset,
             )
         else:
             print(
-                f"{t.target:^40} | ",
+                "{t.target:^40} | ",
                 c.fg.lightgrey,
                 "{:^40}".format("Not Compromised"),
                 c.reset,
             )
         print("{:_^90}\n".format(""))
     total_time = time.time() - start_time
-    print("Execution time (seconds): ", c.fg.lightcyan, f"{total_time}", c.reset, "\n")
+    print("Execution time (seconds): ", c.fg.lightcyan, "{total_time}", c.reset, "\n")

@@ -96,7 +96,7 @@ else:
 # Set the path to the spiderfoot module server
 spiderfootServerPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "modules", "spiderfoot", "sf.py"])
 # Start the spiderfoot module server
-spiderfootServer = subprocess.Popen('{} "{}"'.format(python2, spiderfootServerPath), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+spiderfootServer = subprocess.Popen(python2.split(" ") + [spiderfootServerPath], stdout=open(os.devnull, "wb"), stderr=open(os.devnull, "wb"))
 #fatalError("Impossible to start the spiderfoot server. Make sure that there is no other instance of sf.py running and that no other program use the port number 5001.")
 input("\n Servers are on. Keep this process open until you finished all your scans. Then press 'Enter'\n")
 # Close the spiderfoot module server
