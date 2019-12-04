@@ -3,7 +3,7 @@
 
 ### IMPORTS -----------------------------------------------------------------------------------------------------------------------------------------
 
-import os, sys, subprocess, math
+import os, sys, subprocess, math, platform
 
 # Check the current version of Python
 if sys.version_info[0] < 3:
@@ -32,7 +32,7 @@ if len(modulesList) > 0:
 		# If a requirements file exist
 		if os.path.exists(filePath):
 			# Print the current module name
-			print("\t■ {}".format(module) + " " * (len(longestModuleName) - len(module)), end="\t\t")
+			sys.stdout.write("\t■ {}".format(module) + " " * (len(longestModuleName) - len(module)) + "\t\t")
 			
 			# Open the requirements file
 			with open(filePath, "r") as file:
@@ -47,8 +47,14 @@ if len(modulesList) > 0:
 
 				# For each package in the list
 				for package in packages:
+					# Set the command
+					command = sys.executable + " -m pip install " + package
+					# Check for linux systems
+					if platform.system() == "Linux":
+						# Add a sudo argument
+						command = "sudo " + command
 					# Start the download
-					output = subprocess.Popen([sys.executable, "-m", "pip", "install", package], stdout=open(os.devnull, "wb"), stderr=subprocess.PIPE)
+					output = subprocess.Popen(command.split(" "), stdout=open(os.devnull, "wb"), stderr=subprocess.PIPE)
 					# Get the errors
 					error = output.communicate()[1].decode()
 					# If there is at least one error
@@ -67,7 +73,7 @@ if len(modulesList) > 0:
 							sys.stdout.write("\b" * 20)
 							sys.stdout.flush()
 						# Print the new progress
-						print("{}%\t[".format(currentProgress) + ("■" * int(currentProgress / 10)) + (" " * math.ceil((100 - currentProgress) / 10)) + "]{}".format("\n" if packagesCount == currentPackageIndex else ""), end="")
+						sys.stdout.write("{}%\t[".format(currentProgress) + ("■" * int(currentProgress / 10)) + (" " * math.ceil((100 - currentProgress) / 10)) + "]{}".format("\n" if packagesCount == currentPackageIndex else ""))
 		
 		# If no requirements file found
 		else:
