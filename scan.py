@@ -3,34 +3,25 @@
 
 ### IMPORTS -----------------------------------------------------------------------------------------------------------------------------------------
 
+import sys, os.path, json
+
+# Check the current version of Python
+if sys.version_info[0] < 3:
+    print("Please, use Python 3.")
+    # Quit the program
+    exit()
+
 # Manage arguments
 from getopt import getopt
-
-# Read system info
-import sys
-
-# Manipulate system paths
-import os.path
 
 sys.path.append(os.path.abspath(os.sep.join(("modules", "littlebrother"))))
 
 from modules.littlebrother.core.searchInstagram import extractInstagram
 
 # Import specific functions for this script
-from libs.functions import loadModules, fatalError, startModule, warning
-
-## PHOTON -----------------------------------------------------------------------------------------
-
-# Load JSON string as object
-import json
+from libs.functions import *
 
 ## CONSTANTS --------------------------------------------------------------------------------------
-
-# Normalised value of the target type URL
-targetType_URL = "url"
-
-# Normalised value of the target type Name
-targetType_NAME = "name"
 
 # Load the modules configuration file
 modules = loadModules()

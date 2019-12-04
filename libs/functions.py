@@ -3,14 +3,7 @@
 
 ### IMPORTS -----------------------------------------------------------------------------------------------------------------------------------------
 
-# Execute system commands
-from subprocess import call
-
-# Load JSON string as object
-from json import loads
-
-# Manipulate system paths
-import os.path
+import os.path, json, subprocess
 
 ### CONFIG ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -51,41 +44,15 @@ def isFile(path):
 def loadModules():
 	# If the path is valid
 	if isFile(modulesConfigurationPath):
-		# Open the file
-		with open(modulesConfigurationPath, "r") as file:
-			# extract the data		
-			string = file.read()
-			# Load the data as object
-			json = loads(string)
-			# Print a success message
-			success("Modules configuration file loaded.")
-			# Return the data object
-			return json
+		# Return the json Object
+		return extractJson(modulesConfigurationPath)
+
 	# If the file does not exist
 	else:
 		# Print an error message
 		error("No modules configuration file at " + modulesConfigurationPath)
 		# Print a fatal error message
 		fatalError("The script cannot work without a modules configuration file.")
-
-## DOWNLOAD REQUIREMENTS
-def downloadRequirements(requirementsPath):
-	# If the file exist
-	if isFile(requirementsPath):
-		# Print a downloading message
-		print("\n[DOWNLOADING REQUIREMENTS]\n")
-		# Download and/or upgrade pip
-		call("pip3 install --upgrade pip3")
-		# Download the requirements
-		call("pip3 install --upgrade -r " + requirementsPath)
-	# If the file does not exist3
-	else :
-		# Print an error message
-		error("No requirements file at " + requirementsPath)
-		# Return an error code
-		return -1
-	# Return a success code
-	return 0
 
 
 ## START A MODULE WITH ITS ARGUMENTS
@@ -170,7 +137,7 @@ def startModule(modules, moduleKey, extraArgs = None):
 	#print("\n" + " ".join(command))
 
 	# Save the result of the execution of the command
-	result = call(command)
+	result = subprocess.call(command)
 
 	# Print the end of the module
 	print("\n[End module | " + moduleName + "]")
@@ -194,6 +161,6 @@ def extractJson(filePath):
 		# Extract the text		
 		string = file.read()
 		# Load the data as an object
-		jsonFormat = json.loads(string)
+		jsonObject = json.loads(string)
 		# Return the result
-		return jsonFormat
+		return jsonObject
