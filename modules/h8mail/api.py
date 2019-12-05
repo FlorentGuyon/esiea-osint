@@ -29,6 +29,10 @@ def callh8mail(address):
 		user_targets		= ['"' + address + '"']
 	)
 
+	sys.stdout = None
+
 	breached_targets = h8mail(user_args)
+
+	sys.stdout = sys.__stdout__
 
 	return breached_targets[0].data

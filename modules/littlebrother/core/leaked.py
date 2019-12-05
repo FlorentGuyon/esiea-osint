@@ -4,14 +4,14 @@ class leaked:
 
 	def hash(self, hash):
 		text = requests.get("https://hashtoolkit.com/reverse-hash/?hash="+hash).text
-		passw = re.findall(r"/generate-hash/\?text=(.*?)\"", text)
+		passw = re.findall(r"/generate-hash/\?text=(.*?)\" title=\"Generate (.*?) hash\"", text)
 
 		if len(passw) != 0:
 			passw = passw[0]
 		else:
 			passw = None
 
-		return(passw)
+		return (passw)
 
 	def email(self, email):
 		dataList = []

@@ -1,12 +1,14 @@
-import requests, re, json, time, random
+import requests, re, json, time, random, sys, os
 
 # /core
 from .getUrlGoogleSearch import getUrlGoogleSearch
 from .RegexTool 		 import RegexTool
 from .shortCutUrl 		 import shortCutUrl
 
+sys.path.append(os.sep.join([os.path.dirname(os.path.abspath(__file__)), "..", "lib"]))
+
 # /lib
-from ..lib.download import download
+from download import download
 
 class instagramSearchTool:
 		

@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from core.searchInfoNumero import searchInfoNumero
+from .searchInfoNumero import searchInfoNumero
 from terminaltables import SingleTable
 from colorama import init, Fore,  Back,  Style
 

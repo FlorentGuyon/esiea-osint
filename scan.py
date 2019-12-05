@@ -27,6 +27,8 @@ else:
 
 # Manage arguments
 from modules.littlebrother.core.searchInstagram import extractInstagram
+from modules.littlebrother.core.leaked import leaked
+from modules.littlebrother.core.searchNumber import searchNumberAPI
 from modules.h8mail.api import callh8mail as h8mail
 from modules.spiderfoot.api import launchScan
 
@@ -36,6 +38,48 @@ from modules.spiderfoot.api import launchScan
 modules = loadModules()
 
 ## Classes --------------------------------------------------------------------------------------
+
+class Phone:
+
+	number = None
+	deviceType = None
+	city = None
+	location = None
+	provider = None
+
+	def findDetails(self):
+
+		results = searchNumberAPI(number = self.number)
+
+		self.deviceType = results["deviceType"]
+		self.city = results["city"]
+		self.location = results["location"]
+		self.provider = results["provider"]
+
+	def __init__(self, number = number):
+
+		self.number = number
+		self.findDetails()
+
+	def export(self, indentation = 0):
+
+		lines = [
+			("\t" * indentation) + "PhoneNumber {",
+			("\t" * indentation) + "\tNumber:\t\t" + (self.number if self.number != None else "Unknow"),
+			("\t" * indentation) + "\tDevice Type:\t" + (self.deviceType if self.deviceType != None else "Unknow"),			
+			("\t" * indentation) + "\tCity:\t\t" + (self.city if self.city != None else "Unknow"),
+			("\t" * indentation) + "\tLocation:\t" + (self.location if self.location != None else "Unknow"),
+			("\t" * indentation) + "\tprovider:\t" + (self.provider if self.provider != None else "Unknow"),
+			("\t" * indentation) + "}",
+		]
+
+		return "\n".join(lines)
+
+
+	def __repr__(self):
+
+		return self.export()
+
 
 class Photo:
 
@@ -66,6 +110,10 @@ class Photo:
 		]
 
 		return "\n".join(lines)
+
+	def __repr__(self):
+
+		return self.export()
 
 class Account:
 
@@ -171,6 +219,44 @@ class InstagramAccount(Account):
 	def __repr__(self):
 		return self.export()
 
+class Hash:
+
+	value = None
+	protocol = None
+	crack = None
+
+	def crackHash(self):
+
+		results = leaked().hash(self.value)
+
+		if results != None:
+			(self.crack, self.protocol) = results
+
+	def __init__(self, value, protocol = None, crack = None):
+
+		self.value = value
+		self.protocol = protocol
+		self.crak = crack
+
+		if self.value != None:
+			self.crackHash()
+
+	def export(self, indentation = 0):
+
+		lines = [
+			("\t" * indentation) + "Hash {",
+			("\t" * indentation) + "\tvalue:\t\t" + self.value,
+			("\t" * indentation) + "\tprotocol:\t" + (self.protocol if self.protocol != None else "Unknow"),
+			("\t" * indentation) + "\tcrack:\t\t" + (self.crack if self.crack != None else "Unknow"),
+			("\t" * indentation) + "}"
+		]
+		
+		return "\n".join(lines)
+
+	def __repr__(self):
+
+		return self.export()
+
 class Email:
 
 	address = None
@@ -189,17 +275,24 @@ class Email:
 			(dataType, value) = leak
 			if value == "":
 				continue
-			if dataType == "SCYLLA_SOURCE":
+			elif dataType == "SCYLLA_SOURCE":
 				leakSource = value
 			elif dataType == "SCYLLA_PASSWORD" or dataType == "SCYLLA_HASH":
-				leakType = str.lower(dataType.replace("SCYLLA_", ""))
-				leakValue = value
+				
+				if dataType == "SCYLLA_PASSWORD":
+					leakValue = value
+				else:
+					leakValue = Hash(value)
 
+				leakType = str.lower(dataType.replace("SCYLLA_", ""))
+				
 				self.leaks.append({
 					"source": leakSource,
 					"type": leakType,
 					"value": leakValue
 				})
+			else:
+				error("{} is an unknow data type of email leak.".format(dataType))
 
 
 	def export(self, indentation = 0):
@@ -210,7 +303,16 @@ class Email:
 			("\t" * indentation) + "\tleaks: ["
 		]
 
-		lines += [("\t" * (indentation +2)) + str(leak) for leak in self.leaks] if len(self.leaks) != 0 else "Unknow"
+		for leak in self.leaks:
+
+			line = ("\t" * (indentation +2)) + "Source: {}, Type: {}, Value: ".format(leak["source"], leak["type"])
+
+			if leak["type"] == "hash":
+				line += "\n" + leak["value"].export(indentation +3)
+			else:
+				line += leak["value"]
+
+			lines += [line]
 
 		lines += [
 			("\t" * indentation) + "\t]",
@@ -241,6 +343,15 @@ class Person:
 	usernames = []
 	emails = []
 	accounts = []
+	phoneNumbers = []
+
+	def addPhoneNumbers(self, phoneNumbers):
+
+		if type(phoneNumbers) is str:
+			phoneNumbers = [phoneNumbers]
+
+		[self.phoneNumbers.append(Phone(phoneNumber)) for phoneNumber in phoneNumbers]
+		
 
 	def addMiddleNames(self, middleNames):
 
@@ -278,21 +389,28 @@ class Person:
 		
 		lines = [
 			"PERSON {",
-			"\tfirstname:\t" 	+ (self.firstname if self.firstname != None else "Unknow"),
-			"\tmiddlenames:\t" 	+ (", ".join(self.middleNames) if len(self.middleNames) != 0 else "Unknow"),
-			"\tlastname:\t" 	+ (self.lastname if self.lastname != None else "Unknow"),
-			"\temails: ["
+			"\tFirstname:\t" 	+ (self.firstname if self.firstname != None else "Unknow"),
+			"\tMiddlenames:\t" 	+ (", ".join(self.middleNames) if len(self.middleNames) != 0 else "Unknow"),
+			"\tLastname:\t" 	+ (self.lastname if self.lastname != None else "Unknow"),
+			"\tEmails: ["
 		]
 		
 		lines += [email.export(indentation +2) for email in self.emails]
 
 		lines += [
 			"\t]",
-			"\tusernames: "		+ (", ".join(self.usernames) if len(self.usernames) != 0 else "Unknow"),
-			"\taccounts: ["
+			"\tUsernames: "		+ (", ".join(self.usernames) if len(self.usernames) != 0 else "Unknow"),
+			"\tAccounts: ["
 		]
 
 		lines += [account.export(indentation +2) for account in self.accounts]
+
+		lines += [
+			"\t]",
+			"\tPhone numbers: ["
+		]
+
+		lines += [phoneNumber.export(indentation +2) for phoneNumber in self.phoneNumbers]
 
 		lines += [
 			"\t]",
@@ -433,7 +551,8 @@ def main(argv):
 				(firstname, lastname) = arg
 
 				target = Person(firstname = firstname, lastname = lastname)
-				target.addEmails("florent.guyon@protonmail.com")
+				target.addEmails("example@example.com")
+				target.addPhoneNumbers("0243592424")
 
 				print(target)
 
