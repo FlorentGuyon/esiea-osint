@@ -8,12 +8,11 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Requirements
 
-The main script uses Python 3 so, you must download the latest version of Python 3.
+The main script uses Python 3 so, you must download the latest version of Python 3. Some modules still use Python 2 so, you must also download the latest version of Phython 2.
 
 * https://www.python.org/downloads/source/
 
-Some modules have requirements, the main script download the requirements automatically during its execution.
-Python requirements are downloaded with the paquet manager "Pip".
+Some modules have requirements, the setup script download the requirements automatically during its execution. Python requirements are downloaded with the paquet manager "Pip".
 Download pip with the following command:
 ```
 sudo apt install python3-pip
@@ -28,24 +27,18 @@ git clone https://github.com/FlorentGuyon/esiea-osint
 
 ### Configuring
 
-Go on the root directory of this project and run the setup script as follows:
+Run the setup script as follows:
 ```
-python3 setup.py
-```
-
-The setup scipt will create a requirements file. Make sure to download or upgrade all the requirements.
-You can download the requirements as follows:
-```
-sudo python3 -m pip install --upgrade -r requirements.txt
+sudo python3 setup.py
 ```
 
-Open the "modules.json" file and change the arguments value as you need. The arguments description can help you. The first argument is often a call to python, make sure to use the right alias depending on your system (example: "python", "python3", "py -3" <- Needs two arguments : "py" and "-3").
+Keep this window open during the scans to keep the servers up.
 
 ### Running
 
-When the requirements are downloaded, you can run the main script as follows:
+When the requirements are downloaded and the servers are up, you can run (on another shell) the main script as follows to see the help page:
 ```
-python3 main.py
+python3 scan.py -h
 ```
 
 ## Authors

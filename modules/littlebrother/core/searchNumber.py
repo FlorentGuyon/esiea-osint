@@ -8,16 +8,10 @@ from terminaltables import SingleTable
 
 def searchNumberAPI(number):
 
-	sys.stdout = None
-
-	results = searchNumber(number = number)
-
-	sys.stdout = sys.__stdout__
-
-	return results
+	return searchNumber(number = number, verbose = False)
 
 
-def searchNumber(codemonpays = "FR", number = None):
+def searchNumber(codemonpays = "FR", number = None, verbose = True):
 
 	if number == None:
 		num = input(" Téléphone: ")
@@ -36,7 +30,7 @@ def searchNumber(codemonpays = "FR", number = None):
 	if codemonpays == "FR":
 		url = "https://www.pagesjaunes.fr/annuaireinverse/recherche?quoiqui="
 		requete = requests.get(url+num, headers=headers)
-		searchPJ(requete=requete, num=num)
+		searchPJ(requete=requete, num=num, verbose = verbose)
 		phone = searchInfoNumero()
 		phone.search(num)
 
@@ -59,7 +53,8 @@ def searchNumber(codemonpays = "FR", number = None):
 		TABLE_DATA.append(infos)
 
 		table = SingleTable(TABLE_DATA)
-		print("\n"+table.table)
+		if verbose:
+			print("\n"+table.table)
 
 	elif codemonpays == "CH":
 		# search CH
@@ -97,7 +92,8 @@ def searchNumber(codemonpays = "FR", number = None):
 		TABLE_DATA.append(infos)
 
 		table = SingleTable(TABLE_DATA)
-		print("\n"+table.table)
+		if verbose:
+			print("\n"+table.table)
 
 		url = "https://tel.local.ch/fr/q?ext=1&rid=NV3M&name=&company=&street=&city=&area=&phone="
 		searchLocalCH(url+num)

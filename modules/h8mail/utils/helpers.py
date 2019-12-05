@@ -72,18 +72,20 @@ def print_banner(b_type="intro"):
         )
 
 
-def fetch_emails(target, user_args):
+def fetch_emails(target, user_args, verbose = True):
     """
     Returns a list of emails found in 'target'.
     Can be loosy to skip email pattern search.
     """
     if user_args.loose or user_args.user_query is not None:
         t = target.split(" ")
-        print(t)
+        if verbose:
+            print(t)
         return t
     e = re.findall(r"[\w\.-]+@[\w\.-]+", target)
     if e:
-        print(", ".join(e), c.reset)
+        if verbose:
+            print(", ".join(e), c.reset)
         return e
     return None
 
@@ -182,7 +184,7 @@ def check_latest_version():
             )
         )
 
-def check_scylla_online():
+def check_scylla_online(verbose = True):
     """
     Checks if scylla.sh is online
     """
@@ -193,7 +195,8 @@ def check_scylla_online():
             url="https://scylla.sh", verify=False
         )
         if re.status_code == 200:
-            c.good_news("scylla.sh is up")
+            if verbose:
+                c.good_news("scylla.sh is up")
             return True
         return False
     except Exception:

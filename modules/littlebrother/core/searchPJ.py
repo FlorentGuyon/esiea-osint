@@ -10,7 +10,7 @@ wait = "["+Fore.MAGENTA+"*"+Fore.RESET+"]"
 
 init()
 
-def searchPJ(requete='', num=''):
+def searchPJ(requete='', num='', verbose = True):
 	def testResponse(requete):
 		noReponse = soup.find("p", {"class": "wording-no-responses"})
 		if noReponse:
@@ -82,4 +82,5 @@ def searchPJ(requete='', num=''):
 
 	if rep != 1:
 		table_instance = SingleTable(TABLE_DATA, title)
-		print("\n"+table_instance.table)
+		if verbose:
+			print("\n"+table_instance.table)

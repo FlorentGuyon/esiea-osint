@@ -3,7 +3,7 @@
 
 ### IMPORTS -----------------------------------------------------------------------------------------------------------------------------------------
 
-import sys, os.path, json, getopt
+import sys, os.path, json, getopt, threading, time
 
 # Check the current version of Python
 if sys.version_info[0] < 3:
@@ -49,7 +49,7 @@ class Phone:
 
 	def findDetails(self):
 
-		results = searchNumberAPI(number = self.number)
+		results = searchNumberAPI(self.number)
 
 		self.deviceType = results["deviceType"]
 		self.city = results["city"]
@@ -59,7 +59,9 @@ class Phone:
 	def __init__(self, number = number):
 
 		self.number = number
-		self.findDetails()
+
+		thread = threading.Thread(name = "Phone", target = self.findDetails)
+		thread.start()
 
 	def export(self, indentation = 0):
 
@@ -329,7 +331,9 @@ class Email:
 		else:
 			wrongAttrType(self, "address", str, address)
 
-		self.scanLeaks()
+		thread = threading.Thread(name = "Email", target = self.scanLeaks)
+		thread.start()
+
 
 	def __repr__(self):
 
@@ -492,7 +496,38 @@ class Person:
 		# Return the formated string
 		return self.export()
 
+
 ### MAIN --------------------------------------------------------------------------------------------------------------------------------------------
+
+stop = False
+
+threadTypes = ["Person", "Email", "Hash", "Phone", "Account", "Photo"]
+
+def displayStats():
+
+	previousThreadCount = -1
+
+	while stop != True:
+		
+		threadCount = len(threading.enumerate())
+		sys.stdout.flush()
+		
+		if threadCount != previousThreadCount:
+
+			previousThreadCount = threadCount
+
+			threadClasses = [thread.name for thread in threading.enumerate()]
+
+			lines = [
+				"",
+				"  Analysing...",
+				"",
+			]
+
+			lines += ["    ■ {}:\t{} | {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
+
+			clear()
+			print("\n".join(lines))
 
 # Display an help message
 def displayHelp():
@@ -550,9 +585,22 @@ def main(argv):
 			else:
 				(firstname, lastname) = arg
 
+				display = threading.Thread(target = displayStats)
+				display.start()
+
 				target = Person(firstname = firstname, lastname = lastname)
 				target.addEmails("example@example.com")
+				target.addPhoneNumbers("+33637619800")
+				target.addPhoneNumbers("contactflorentguyon@protonmail.com")
+				target.addEmails("florent.guyon@protonmail.com")
 				target.addPhoneNumbers("0243592424")
+
+				[thread.join() for thread in threading.enumerate() if thread.name in threadTypes]
+
+				global stop
+				stop = True
+
+				time.sleep(3)
 
 				print(target)
 
