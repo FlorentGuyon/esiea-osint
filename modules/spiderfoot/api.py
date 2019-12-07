@@ -53,7 +53,7 @@ def launchScan(baseCriteria):
             s = result.json()
             if(s['meta'][5] != status):
                 status = s['meta'][5]
-                print("\t[" + status + "]\tScan of " + baseCriteria)
+                #print("\t[" + status + "]\tScan of " + baseCriteria)
           
         #Put data into a pretty json
         exportParam={"ids": scanId}

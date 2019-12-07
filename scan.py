@@ -12,6 +12,7 @@ if sys.version_info[0] < 3:
     exit()
 
 from libs.functions import *
+from libs.fpdf.api import create_pdf
 
 # Check if the requirements are up to date and if the spiderfoot server is on
 response = input("Have you already start the setup.py program (in sudo mode) ? [Y/n] : ")
@@ -31,11 +32,11 @@ from modules.littlebrother.core.leaked import leaked
 from modules.littlebrother.core.searchNumber import searchNumberAPI
 from modules.h8mail.api import callh8mail as h8mail
 from modules.spiderfoot.api import launchScan
+from download import download
 
 ## CONSTANTS --------------------------------------------------------------------------------------
 
-# Load the modules configuration file
-modules = loadModules()
+resultsPath = None
 
 ## Classes --------------------------------------------------------------------------------------
 
@@ -47,6 +48,17 @@ class Phone:
 	location = None
 	provider = None
 
+	def __init__(self, number = number):
+
+		self.number = number
+		self.deviceType = None
+		self.city = None
+		self.location = None
+		self.provider = None
+
+		threading.Thread(name = "Phone", target = self.findDetails).start()
+
+
 	def findDetails(self):
 
 		results = searchNumberAPI(self.number)
@@ -56,12 +68,6 @@ class Phone:
 		self.location = results["location"]
 		self.provider = results["provider"]
 
-	def __init__(self, number = number):
-
-		self.number = number
-
-		thread = threading.Thread(name = "Phone", target = self.findDetails)
-		thread.start()
 
 	def export(self, indentation = 0):
 
@@ -86,24 +92,37 @@ class Phone:
 class Photo:
 
 	url = None
+	name = None
 	date = None
 	location = None
 	path = None
 	contents = []
 
-	def __init__(self, url, date, location, path, contents):
+
+	def __init__(self, url, path, name, date=None, location=None, contents=None):
 
 		self.url = url
+		self.name = name
 		self.date = date
 		self.location = location
 		self.path = path
 		self.contents = contents
+
+		if self.url != None:
+			threading.Thread(name="Photo", target=self.download).start()
+
+
+	def download(self):
+
+		download(self.url, self.path, self.name)
+
 
 	def export(self, indentation = 0):
 
 		lines = [
 			("\t" * indentation) + "Photo {",
 			("\t" * indentation) + "\tUrl:\t\t{}".format(self.url if self.url != None else "Unknow"),
+			("\t" * indentation) + "\tName:\t\t{}".format(self.name if self.name != None else "Unknow"),
 			("\t" * indentation) + "\tDate:\t\t{}".format(self.date if self.date != None else "Unknow"),
 			("\t" * indentation) + "\tLocation:\t{}".format(self.location if self.location != None else "Unknow"),
 			("\t" * indentation) + "\tPath:\t\t{}".format(self.path if self.path != None else "Unknow"),
@@ -113,9 +132,11 @@ class Photo:
 
 		return "\n".join(lines)
 
+
 	def __repr__(self):
 
 		return self.export()
+
 
 class Account:
 
@@ -146,7 +167,7 @@ class InstagramAccount(Account):
 	name = None
 	username = None
 	userId = None
-	avatarPath = None
+	avatar = None
 	isPrivate = None
 	followersCount = None
 	friendsCount = None
@@ -159,12 +180,31 @@ class InstagramAccount(Account):
 
 	def __init__(self, profileLink):
 
-		data = extractInstagram(profileLink, os.path.abspath(os.sep.join(("modules", "littlebrother", "results"))))
+		Account.__init__(self, serviceName = "Instagram", serviceCategory = "social", profileLink = profileLink)
+
+		self.name = None
+		self.username = None
+		self.userId = None
+		self.avatar = None
+		self.isPrivate = None
+		self.followersCount = None
+		self.friendsCount = None
+		self.postsCount = None
+		self.description = None
+		self.email = None
+		self.address = None
+		self.phone = None
+		self.photos = []
+
+		threading.Thread(name="Account", target=self.extractData).start()
+
+	def extractData(self):
+
+		data = extractInstagram(self.profileLink)
 
 		self.name = data["name"]
 		self.username = data["username"]
 		self.userId = data["id"]
-		self.avatarPath = data["profilPhoto"]
 		self.isPrivate = data["private"]
 		self.followersCount = data["followers"]
 		self.friendsCount = data["friends"]
@@ -172,7 +212,15 @@ class InstagramAccount(Account):
 		self.description = data["biography"]
 		self.email = data["email"]
 		self.address = data["adresse"]
-		self.phone = data["phone"]
+
+		if data["phone"] != None:
+			self.phone = Phone(data["phone"])
+
+		if data["profilPhoto"] != None:
+
+			path = os.sep.join([resultsPath, "images", "instagram", self.username])
+			name = "{}.jpg".format(self.username)
+			self.avatar = Photo(url=data["profilPhoto"], path=path, name=name)
 
 		for photo in data["photos"]:
 
@@ -181,12 +229,13 @@ class InstagramAccount(Account):
 			url = photo["media"]
 			date = photo["date"]
 			location = photo["loc"]
-			path = photo["path"]
-			contents = photo["view"].split(", ")		
+			name = photo["name"]
+			contents = photo["view"].split(", ")
 
-			self.photos.append(Photo(url = url, date = date, location = location, path = path, contents = contents))
+			path = os.sep.join([resultsPath, "images", "instagram", self.username, "photos"])		
 
-		Account.__init__(self, serviceName = "Instagram", serviceCategory = "social", profileLink = profileLink)
+			self.photos.append(Photo(url=url, date=date, location=location, path=path, name=name, contents=contents))
+
 
 	def export(self, indentation = 0):
 
@@ -197,7 +246,7 @@ class InstagramAccount(Account):
 			("\t" * indentation) + "\tLink:\t\t{}".format(self.profileLink if self.profileLink != None else "Unknow"),
 			("\t" * indentation) + "\tUsername:\t{}".format(self.username if self.username != None else "Unknow"),
 			("\t" * indentation) + "\tUser ID:\t{}".format(self.userId if self.userId != None else "Unknow"),
-			("\t" * indentation) + "\tAvatar path:\t{}".format(self.avatarPath if self.avatarPath != None else "Unknow"),
+			("\t" * indentation) + "\tAvatar path:\t{}".format(str(self.avatar) if self.avatar != None else "Unknow"),
 			("\t" * indentation) + "\tisPrivate:\t{}".format(self.isPrivate if self.isPrivate != None else "Unknow"),
 			("\t" * indentation) + "\tFollowers:\t{}".format(self.followersCount if self.followersCount != None else "Unknow"),
 			("\t" * indentation) + "\tFriends:\t{}".format(self.friendsCount if self.friendsCount != None else "Unknow"),
@@ -241,7 +290,8 @@ class Hash:
 		self.crak = crack
 
 		if self.value != None:
-			self.crackHash()
+			threading.Thread(name="Hash", target=self.crackHash).start()
+
 
 	def export(self, indentation = 0):
 
@@ -266,23 +316,28 @@ class Email:
 
 	def scanLeaks(self):
 
-		leaks = h8mail(self.address)
-		leaks = [leak for leak in leaks if len(leak) == 2]
+		results = h8mail(self.address)
+		results = [result for result in results if len(result) == 2]
 
 		leakSource = None
 		leakType = None
 		leakValue = None
 
-		for leak in leaks:
-			(dataType, value) = leak
+		for result in results:
+
+			(dataType, value) = result
+			
 			if value == "":
 				continue
+			
 			elif dataType == "SCYLLA_SOURCE":
 				leakSource = value
+			
 			elif dataType == "SCYLLA_PASSWORD" or dataType == "SCYLLA_HASH":
 				
 				if dataType == "SCYLLA_PASSWORD":
 					leakValue = value
+
 				else:
 					leakValue = Hash(value)
 
@@ -293,6 +348,7 @@ class Email:
 					"type": leakType,
 					"value": leakValue
 				})
+
 			else:
 				error("{} is an unknow data type of email leak.".format(dataType))
 
@@ -326,14 +382,10 @@ class Email:
 
 	def __init__(self, address):
 
-		if type(address) is str:
-			self.address = address
-		else:
-			wrongAttrType(self, "address", str, address)
+		self.address = address
+		self.leaks = []
 
-		thread = threading.Thread(name = "Email", target = self.scanLeaks)
-		thread.start()
-
+		threading.Thread(name = "Email", target = self.scanLeaks).start()
 
 	def __repr__(self):
 
@@ -342,7 +394,7 @@ class Email:
 class Person:
 
 	firstname = None
-	middleNames = []
+	middlenames = []
 	lastname = None
 	usernames = []
 	emails = []
@@ -357,12 +409,12 @@ class Person:
 		[self.phoneNumbers.append(Phone(phoneNumber)) for phoneNumber in phoneNumbers]
 		
 
-	def addMiddleNames(self, middleNames):
+	def addMiddleNames(self, middlenames):
 
-		if type(middleNames) is str:
-			middleNames = [middleNames]
+		if type(middlenames) is str:
+			middlenames = [middlenames]
 
-		self.middleNames += middleNames
+		self.middlenames += middlenames
 
 
 	def addEmails(self, emails):
@@ -389,12 +441,13 @@ class Person:
 			self.accounts.append(account)
 
 
+
 	def export(self, indentation = 0):
 		
 		lines = [
 			"PERSON {",
 			"\tFirstname:\t" 	+ (self.firstname if self.firstname != None else "Unknow"),
-			"\tMiddlenames:\t" 	+ (", ".join(self.middleNames) if len(self.middleNames) != 0 else "Unknow"),
+			"\tMiddlenames:\t" 	+ (", ".join(self.middlenames) if len(self.middlenames) != 0 else "Unknow"),
 			"\tLastname:\t" 	+ (self.lastname if self.lastname != None else "Unknow"),
 			"\tEmails: ["
 		]
@@ -460,36 +513,23 @@ class Person:
 				self.addUsernames(result["data"])
 
 
-	def __init__(self, firstname = None, middleNames = None, lastname = None):
+	def __init__(self, firstname = None, middlenames = None, lastname = None):
 
-		if firstname != None:
-			self.firstname = firstname
-		
-		if middleNames != None:
-			self.addMiddleNames(middleNames)
-	
-		if lastname != None:
-			self.lastname = lastname
+		self.firstname = firstname
+		self.lastname = lastname
+		self.usernames = []
+		self.emails = []
+		self.accounts = []
+		self.phoneNumbers = []
 
-	# Define a new attribute
-	def __setattr__(self, attr, val):
-		# If the type of firstname or lastname is string
-		if (attr == "firstname" or attr == "lastname") and type(val) is str:
-			# Define the new attribute
-			object.__setattr__(self, attr, val)
-			# If both first and last name are set
-			if self.firstname != None and self.lastname != None:
-				# Start a scan of the name
-				self.scanName()
-		# If the attribute type is wrong
-		else:
-			# Display an error message
-			wrongAttrType(self, attr, str, val)
+		if middlenames != None:
+			self.addMiddleNames(middlenames)
 
-		# If the type of middlenames or emails is not a list
-		if (attr == "middleNames" or attr == "emails") and type(val) is not list:
-			# Display an error message
-			wrongAttrType(self, attr, list, val)
+
+		if self.firstname != None and self.lastname != None:
+
+			threading.Thread(name="Person", target=self.scanName).start()
+
 
 	# Represent the attribute
 	def __repr__(self):
@@ -500,7 +540,6 @@ class Person:
 ### MAIN --------------------------------------------------------------------------------------------------------------------------------------------
 
 stop = False
-
 threadTypes = ["Person", "Email", "Hash", "Phone", "Account", "Photo"]
 
 def displayStats():
@@ -524,10 +563,11 @@ def displayStats():
 				"",
 			]
 
-			lines += ["    ■ {}:\t{} | {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
+			lines += ["    ■ {}\t  {}\t| {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
 
 			clear()
 			print("\n".join(lines))
+			time.sleep(0.1)
 
 # Display an help message
 def displayHelp():
@@ -585,101 +625,35 @@ def main(argv):
 			else:
 				(firstname, lastname) = arg
 
+				global resultsPath
+				resultsPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "results", "{} {}".format(firstname, lastname)])
+
 				display = threading.Thread(target = displayStats)
 				display.start()
 
 				target = Person(firstname = firstname, lastname = lastname)
-				target.addEmails("example@example.com")
-				target.addPhoneNumbers("+33637619800")
-				target.addPhoneNumbers("contactflorentguyon@protonmail.com")
-				target.addEmails("florent.guyon@protonmail.com")
-				target.addPhoneNumbers("0243592424")
+				#target.addAccount(InstagramAccount("https://www.instagram.com/_where_to_travel_"))
+				#target.addAccount(InstagramAccount("https://www.instagram.com/_grayrabbit"))
+				#target.addAccount(Account(serviceName="Youtube", serviceCategory="video", profileLink="www.yt.com"))
 
-				[thread.join() for thread in threading.enumerate() if thread.name in threadTypes]
+				while len([thread for thread in threading.enumerate() if thread.name in threadTypes]) > 0:
+					[thread.join() for thread in threading.enumerate() if thread.name in threadTypes]
+
+				time.sleep(0.2)
 
 				global stop
 				stop = True
 
-				time.sleep(3)
+				display.join()
 
-				print(target)
+				#print(target)
+				create_pdf(target, resultsPath)
 
-	## PHOTON -----------------------------------------------------------------------------------------
-
-	# If the target type is an URL
-#	if targetType == targetType_URL:
-#		# Get the return code of the module execution
-#		returncode = startModule(modules, "photon", ["--url", targetValue])
-#		# If the execution succed
-#		if returncode == 0 :
-#			# Set the path to the result file
-#			filePath = os.sep.join(["modules", "photon", "results", "exported.json"])
-#			# Open the result file
-#			with open(filePath, "r") as file:
-#				# Extract the text		
-#				string = file.read()
-#				# Load the data as an object
-#				json = loads(string)
-#				# Save the interesting part of the object
-#				result = json['custom']
-#				# Print an empty line
-#				print("")
-#				# For each category of data (email, phone...)
-#				for key in result:
-#					# If there is at least one result
-#					if len(result[key]) > 0 :
-#						# Print the count of result
-#						print(" " + str(len(result[key])) + " " + key + " found:")
-#						# For each result
-#						for value in result[key]:
-#							# Print the result on a new line
-#							print("  - " + value)
-#					# If there is no result
-#					else :
-#						# Print a specific message
-#						print(" No " + key + " found.")
-#		# If the execution failed
-#		else:
-#			# Print a warning message
-#			warning("The \"photon\" module exits with an error.")
-#
-#		## H8MAIL && SPIDERFOOT -----------------------------------------------------------------------------------------
-#
-#		# If the execution of the "photon" module succed
-#		if result != None:
-#			# If there is emails in the result
-#			try:
-#				# Save the list of email
-#				emails = ",".join(result["email"])		
-#			# If there is no emails
-#			except:
-#				# Print an error message
-#				error("The \"email\" dictionary is corrupted.")
-#
-#			# If the email list saved is not empty
-#			if emails != "":
-#				# Start the h8mail module with the email list
-#				startModule(modules, "h8mail", ["--target", emails])
-##				# Start the spiderfoot module with the email list
-#				startModule(modules, "spiderfoot", emails)
-#			# If the email list is empty
-#			else:
-##				# Print a warning message
-#				warning("No email to scan with the module \"h8mail\".")
-#				# Print a warning message
-#				warning("No email to scan with the module \"spiderfoot\".")
-#
-#	# Else if the target type is a name
-#	elif targetType == targetType_NAME:
-#		# Format the name for the spiderfoot module 
-#		name = "\"" + targetValue + "\""
-#		# Start the spiderfoot module
-#		startModule(modules, "spiderfoot", name)
-#
-## ------------------------------------------------------------------------------------------------
 
 if __name__ == "__main__":
+
 	# Call the main function with all the arguments except the path to this file
 	main(sys.argv[1:])
 
 ## ------------------------------------------------------------------------------------------------
+#	--threads=1, --level=2, --keys, --regex, "{\"email\": \"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-]+\", \"phone number\": \"\\(?\\+?[0-9]{1,4}\\)?[1-9] [0-9]{2} [0-9]{2} [0-9]{2} [0-9]{2}\"}"

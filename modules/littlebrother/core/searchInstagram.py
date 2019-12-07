@@ -8,7 +8,7 @@ question = "["+Fore.YELLOW+"?"+Fore.RESET+"]"
 found = "["+Fore.GREEN+"+"+Fore.RESET+"]"
 wait = "["+Fore.MAGENTA+"*"+Fore.RESET+"]"
 
-def extractInstagram(urlProfil, imagesPath):
+def extractInstagram(urlProfil):
 
 	insta = instagramSearchTool()
 	insta.getInfo(urlProfil)
@@ -19,11 +19,10 @@ def extractInstagram(urlProfil, imagesPath):
 
 	for i in pictureInfo:
 
-		path = os.sep.join((imagesPath, insta.username))
 		filename = "{}_{}.jpg".format(insta.username, str(i))
 		media = pictureInfo[i]['display']
 
-		insta.downloadPictures(media, path, filename)
+		#insta.downloadPictures(media, path, filename)
 
 		photos.append({
 			"media": media,
@@ -31,7 +30,7 @@ def extractInstagram(urlProfil, imagesPath):
 			"date": pictureInfo[i]['date'],
 			"view": pictureInfo[i]['info'],
 			"loc": pictureInfo[i]['localisation'],
-			"path": os.sep.join((path, filename))
+			"name": filename
 			})
 
 	return {
