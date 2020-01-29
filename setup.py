@@ -14,7 +14,18 @@ if sys.version_info[0] < 3:
 from libs.functions import clear
 
 # Ask for the path to python 2
-python2 = input("\n Write the alias or the path to python2: ")
+python2 = None
+
+while python2 == None:
+	
+	python2 = input("\n Write the alias (py -2, python2...) or the absolute path to python2: ")
+	
+	try:
+		returnCode = subprocess.call(" ".join([python2, "--version"]))
+
+	except:
+		print("The alias or absolute path \"{}\" is invalid".format(python2))
+		python2 = None
 
 clear()
 

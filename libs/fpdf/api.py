@@ -18,47 +18,69 @@ bottomMargin = 10
 areaWidth = pageWidth - (leftMargin + rightMargin)
 areaHeight = pageHeight - (topMargin + bottomMargin)
 
-font = "Arial"
+fontFamily = "DejaVu"
 
-lineHeigh = 5
+filePath = os.path.dirname(os.path.abspath(__file__))
+
+lineHeight = 5
 indentationWidth = 10
 
 fontSize = {
 	
-	"tiny": 8,
-	"normal": 10,
+	"tiny": 10,
+	"normal": 12,
 	"large": 14,
-	"veryLarge": 18
+	"veryLarge": 18,
+	"veryVeryLarge": 24
 }
 
 
-def newChapter(pdf, title, subtitle):
-	
+def newChapter(title, subtitle):
+
 	pdf.add_page()
-	pdf.set_font(font, size=fontSize["veryLarge"])
+	newLine(20)
+	pdf.set_font(fontFamily, size=fontSize["veryVeryLarge"])
 	pdf.multi_cell(0, 10, txt=title, align="C")
-	pdf.set_font(font, "I", size=fontSize["large"])
+	pdf.set_font(fontFamily, 'B', size=fontSize["large"])
 	pdf.multi_cell(0, 5, txt=subtitle, align="C")
-	pdf.set_font(font, size=fontSize["normal"])
+	pdf.set_font(fontFamily, size=fontSize["normal"])
 
 
-def newSection(pdf, chapter):
+def newSection(top = None, bottom = None):
 
-	newLine(pdf, 3)
-	pdf.line(pdf.get_x(), pdf.get_y(), areaWidth, pdf.get_y())
-	pdf.set_font(font, size=fontSize["large"])
-	pdf.cell(23, 10, txt=chapter, ln=1)
-	pdf.set_font(font, size=fontSize["normal"])
-	newLine(pdf)
+	pdf.add_page()
 
-def newValue(pdf, indentation=0, description="{}", values=[]):
+	if top != None:
+		pdf.set_font(fontFamily, 'B', size=fontSize["large"])
+		pdf.cell(23, 10, txt=top, ln=1)
+
+	pdf.line(pdf.get_x(), pdf.get_y(), leftMargin + areaWidth, pdf.get_y())
+	
+	if bottom != None:
+		pdf.set_font(fontFamily, 'I', size=fontSize["normal"])
+		pdf.cell(23, 10, txt=bottom, ln=1)
+	
+	pdf.set_font(fontFamily, size=fontSize["normal"])
+
+
+def newLink(link, indentation=0, align="L"):
+
+	if indentation != 0:
+		pdf.cell(indentationWidth * indentation)
+
+	pdf.set_font(fontFamily, size=fontSize["tiny"])
+	pdf.cell(0, 5, txt=link, link=link, ln=1, align=align)
+	pdf.set_font(fontFamily, size=fontSize["normal"])
+
+
+def newValue(indentation=0, description="{}", values=[], align="L"):
 
 	if type(values) != list:
 		values=[values]
 
 	for value in values:
-		if value == None or value == "":
-			value="UNKNOW"
+		if value == None:
+			value = ""
 		elif type(value) != str:
 			value = str(value)
 		description=description.replace("{}", value, 1)
@@ -66,17 +88,16 @@ def newValue(pdf, indentation=0, description="{}", values=[]):
 	if indentation != 0:
 		pdf.cell(indentationWidth * indentation)
 	
-	pdf.multi_cell(0, 5, txt=description)
-	pdf.set_font(font)
+	pdf.set_font(fontFamily, size=fontSize["normal"])
+	pdf.multi_cell(0, 5, txt=description, align=align)
 
 
-def newLine(pdf, number = 1):
+def newLine(number = 1):
 
-	pdf.ln(lineHeigh * number)
+	pdf.ln(lineHeight * number)
 
 
-
-def newImage(pdf, path, size, x=None, y=None):
+def newImage(path, size, x=None, y=None, link=None):
 
 	if x == None:
 		x = pdf.get_x()
@@ -84,7 +105,8 @@ def newImage(pdf, path, size, x=None, y=None):
 	if y == None:
 		y = pdf.get_y()
 
-	pdf.image(path, x, y, size)
+	pdf.image(path, x, y, size, link=link)
+
 
 class CustomPDF(FPDF):
  
@@ -92,10 +114,10 @@ class CustomPDF(FPDF):
     def header(self):
 
         # Set up a logo
-        newImage(self, os.sep.join([os.path.dirname(os.path.abspath(__file__)), "..", "images", "Logo-ESIEA.jpg"]), 33, x=170, y=5)
+        newImage(os.sep.join([filePath, "images", "Logo-ESIEA.jpg"]), 33, x=170, y=5)
 
         # Line break
-        newLine(self, 4)
+        newLine(4)
 
 	#Footer Definition 
     def footer(self):
@@ -103,12 +125,15 @@ class CustomPDF(FPDF):
         self.set_y(-10)
  
  		#Change font to italic
-        self.set_font(font, size=fontSize["tiny"])
+        self.set_font(fontFamily, size=fontSize["tiny"])
  
         # Add a page number
         self.cell(0, 10, str(self.page_no()) + " | " + "{nb}", align='R')
 
-def create_pdf(person, resultsPath):
+
+def create_pdf(person, resultsPath, identity):
+
+	global pdf
 
 	#Create header and footer
 	pdf = CustomPDF()
@@ -116,81 +141,99 @@ def create_pdf(person, resultsPath):
 	#Get total number of pages
 	pdf.alias_nb_pages()
 
+	#
+	pdf.add_font(fontFamily, '', os.sep.join([filePath, "fonts", "DejaVuSansCondensed.ttf"]), uni=True)
+	pdf.add_font(fontFamily, 'B', os.sep.join([filePath, "fonts", "DejaVuSansCondensed-Bold.ttf"]), uni=True)
+	pdf.add_font(fontFamily, 'IB', os.sep.join([filePath, "fonts", "DejaVuSansCondensed-BoldOblique.ttf"]), uni=True)
+	pdf.add_font(fontFamily, 'I', os.sep.join([filePath, "fonts", "DejaVuSansCondensed-Oblique.ttf"]), uni=True)
+
 	# New page
-	newChapter(pdf, "INFORMATION REPORT", "OPEN SOURCE INTELLIGENCE")
-	
+	newChapter("INFORMATION REPORT", "OPEN SOURCE INTELLIGENCE")
 
 	# Identity
 
-	newSection(pdf, "IDENTITY")
+	if person.firstname != None or \
+		person.middlenames != [] or\
+		person.lastname != None or \
+		person.usernames != []:
 
-	newValue(pdf, description="Firstname: {}", values=person.firstname)
-	newValue(pdf, description="Middlenames: {}", values=", ".join(person.middlenames))
-	newValue(pdf, description="Lastname: {}", values=person.lastname)
-	newValue(pdf, description="Usernames: {}", values=", ".join(person.usernames))
+		newSection("IDENTITY")
+		newLine(2)
+
+		if person.firstname != None:
+			newValue(description="Firstname: {}", values=person.firstname)
+		if person.middlenames != []:
+			newValue(description="Middlenames: {}", values=", ".join(person.middlenames))
+		if person.lastname != None:
+			newValue(description="Lastname: {}", values=person.lastname)
+		if person.usernames != []:
+			newValue(description="Usernames: {}", values=", ".join(person.usernames))
 
 
 	#Emails
 
-	newSection(pdf, "EMAILS")
-
 	if person.emails:
+
+		newSection("EMAILS")
 
 		for email in person.emails:
 
-			newValue(pdf, indentation=1, values=email.address)
+			newValue(indentation=1, values=email.address)
 
 			if len(email.leaks) > 0:
-				newValue(pdf, indentation=2, values="Leaks found:")
+				newValue(indentation=2, values="Leaks found:")
 
 				for leak in email.leaks:
-					newValue(pdf, indentation=3, description="From {}, ({}):\n{}\n", values=[leak["source"], leak["type"], leak["value"]])
+					newValue(indentation=3, description="From {}, ({}):\n{}\n", values=[leak["source"], leak["type"], leak["value"]])
 			else:
-				newValue(pdf, indentation=2, values="No leaks found.")
+				newValue(indentation=2, values="No leaks found.")
 
-			newLine(pdf)
-
-	else:
-		newValue(pdf, indentation=1, values="No email address found.")
+			newLine()
 
 
 	# Phones
-
-	newSection(pdf, "PHONE NUMBERS")
-
 	if len(person.phoneNumbers) > 0:
-		
+
+		newSection("PHONE NUMBERS")
+
 		for phone in person.phoneNumbers:
-			newValue(pdf, indentation=1, description="{} ({} - {})\n{}, {}", values=[phone.number, phone.deviceType, phone.provider, phone.city, phone.location])
-			newLine(pdf)
-	
-	else:
-		newValue(pdf, indentation=1, values="No phone number found.")
+			newValue(indentation=1, description="{} ({})\nCountry: {}, ({})", values=[phone.number, phone.deviceType, phone.country, phone.location])
+			newLine()
 
 
 	# Accounts
 
-	newSection(pdf, "ACCOUNTS")
-
 	if len(person.accounts) > 0:
 
 		for account in person.accounts:
-			newValue(pdf, indentation=1, description="{} ({})\n{}", values=[account.serviceName, account.serviceCategory, account.profileLink])
+
+			category = " (" + account.serviceCategory + ")" if (account.serviceCategory != None) else ""
+			newSection(account.serviceName + category)
+			newLink(account.profileLink, align="R")
+			newLine()
+
+			if account.qrcode != None:
+				newImage(os.sep.join([account.qrcode.path, account.qrcode.name]), 30, x=20, y=pdf.get_y(), link = account.profileLink)
+				newLine()
 
 			if account.__class__.__name__ == "InstagramAccount":
-				newLine(pdf)
-				newValue(pdf, indentation=2, description="{} ({}, ID: {}) Real name: {}", values=[account.username, "Private account" if account.isPrivate else "Public account", account.userId, account.name])
-				newValue(pdf, indentation=2, description="Email: {}, Address: {}, Phone number: {}", values=[account.email, account.address, account.phone])
-				newValue(pdf, indentation=2, description="Followers: {}    Friends: {}    Posts: {}", values=[account.followersCount, account.friendsCount, account.postsCount])
-				newLine(pdf)
 
+				newValue(indentation=5, description="{} ({}, ID: {})", values=[account.username, "Private account" if account.isPrivate else "Public account", account.userId])
+				if account.name != None:
+					newValue(indentation=5, description="Real name: {}", values=account.name)
+				if account.email != None:
+					newValue(indentation=5, description="Email: {}", values=account.email)
+				if account.address != None:
+					newValue(indentation=5, description="Address: {}", values=account.address)
+				if account.phone != None:
+					newValue(indentation=5, description="Phone number: {}", values=account.phone)
+				newValue(indentation=5, description="Followers: {}    Followings: {}    Posts: {}", values=[account.followersCount, account.friendsCount, account.postsCount])
+				newLine()
 				if account.avatar != None:
-
-					pdf.set_x(pdf.get_x() + (indentationWidth * 2))
-					newImage(pdf, os.sep.join([account.avatar.path, account.avatar.name]), 30)
-
-				newValue(pdf, indentation=4, description="Biography:\n{}", values=account.description)
-				newLine(pdf, 5)
+					newImage(os.sep.join([account.avatar.path, account.avatar.name]), 50, x=pdf.get_x()+10, y=100)
+				if account.description != None:
+					newValue(indentation=7, description="Biography:\n{}", values=account.description)
+				newLine(5)
 
 				if len(account.photos) > 0:
 
@@ -202,7 +245,7 @@ def create_pdf(person, resultsPath):
 
 						if pdf.get_x() + imageSize > 200:
 
-							newLine(pdf, (imageSize * 1.5) / lineHeigh)
+							newLine((imageSize * 1.5) / lineHeight)
 							pdf.set_x(leftMargin)
 
 						if pdf.get_y() + (imageSize *2) > areaHeight: 
@@ -211,24 +254,56 @@ def create_pdf(person, resultsPath):
 
 						pdf.set_x(pdf.get_x() + imageMargin)
 
-						newImage(pdf, os.sep.join([photo.path, photo.name]), imageSize)
+						newImage(os.sep.join([photo.path, photo.name]), imageSize)
 						
 						pdf.set_x(pdf.get_x() + imageSize + imageMargin)
 
 
-					newLine(pdf, (imageSize * 1.5) / lineHeigh)
+					newLine((imageSize * 1.5) / lineHeight)
 
 				else:
-					newLine(pdf, 3)
+					newLine(3)
+
+			elif account.__class__.__name__ == "TwitterAccount":
+
+				userId = " (ID:" + account.userId + ")" if (account.userId != None) else ""
+				newValue(indentation=5, description="{}{}", values=[account.username, userId])
+
+				if account.isPrivate:
+					newValue(indentation=5, description="Private account")
+
+				else:
+					newLine(3)
+					if account.tweetsChart != None:
+						newImage(os.sep.join([account.tweetsChart.path, account.tweetsChart.name]), 180)
+						newLine(10)
+					if account.repliesChart != None:
+						newImage(os.sep.join([account.repliesChart.path, account.repliesChart.name]), 180)
+						newLine(10)
+					if account.retweetsChart != None:
+						newImage(os.sep.join([account.retweetsChart.path, account.retweetsChart.name]), 180)
+						newLine(10)
+					if account.likesChart != None:
+						newImage(os.sep.join([account.likesChart.path, account.likesChart.name]), 180)
+						newLine(10)
+						pdf.add_page()
+					if account.hoursChart != None:
+						newImage(os.sep.join([account.hoursChart.path, account.hoursChart.name]), 180)
+						newLine(20)
+					if account.wordcloud != None:
+						pdf.add_page()
+						newImage(os.sep.join([account.wordcloud.path, account.wordcloud.name]), 150, x=30, y=pdf.get_x() + 30)
 			
-			newLine(pdf)
-	
-	else:
-		newValue(pdf, indentation=1, values="No account found.")
+			else:
+				newValue(indentation=5, description="Data extraction from this website is not yet automated.")
 
 
 	# Export
-	reportPath = os.sep.join([resultsPath, "{} {}.pdf".format(person.firstname, person.lastname)])
-	pdf.output(reportPath)
+	reportPath = os.sep.join([resultsPath, "{}.pdf".format(identity)])
+	
+	if not os.path.exists(resultsPath):
+		os.makedirs(resultsPath)
+	
+	pdf.output(reportPath, 'F')
 
 	print("\nFinal report available at {}".format(reportPath))

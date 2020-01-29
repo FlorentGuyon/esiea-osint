@@ -36,8 +36,7 @@ def searchNumber(codemonpays = "FR", number = None, verbose = True):
 
 		TABLE_DATA = []
 
-		city = phone.city
-		operator = phone.operator
+		country = phone.country
 		location = phone.location
 		_type = phone.phone_type
 
@@ -45,9 +44,7 @@ def searchNumber(codemonpays = "FR", number = None, verbose = True):
 		TABLE_DATA.append(infos)
 		infos = ("Type", _type)
 		TABLE_DATA.append(infos)
-		infos = ("Operateur", operator)
-		TABLE_DATA.append(infos)
-		infos = ("City", city)
+		infos = ("Pays", country)
 		TABLE_DATA.append(infos)
 		infos = ("Localisation", location)
 		TABLE_DATA.append(infos)
@@ -104,8 +101,7 @@ def searchNumber(codemonpays = "FR", number = None, verbose = True):
 	results = {
 		"number": num,
 		"deviceType": _type,
-		"provider": operator,
-		"city": city,
+		"country": country,
 		"location": location 
 	}
 

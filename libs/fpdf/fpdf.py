@@ -1094,10 +1094,10 @@ class FPDF(object):
 
     def normalize_text(self, txt):
         "Check that text input is in the correct format/encoding"
-        # - for TTF unicode fonts: unicode object (latin1 encoding)
+        # - for TTF unicode fonts: unicode object (utf8 encoding)
         # - for built-in fonts: string instances (latin 1 encoding)
         if self.unifontsubset and isinstance(txt, str) and not PY3K:
-            txt = txt.decode('latin1')
+            txt = txt.decode('utf8')
         elif not self.unifontsubset and isinstance(txt, unicode) and not PY3K:
             txt = txt.encode('latin1')
         return txt
@@ -1167,7 +1167,7 @@ class FPDF(object):
             #Page content
             if self.compress:
                 # manage binary data as latin1 until PEP461 or similar is implemented
-                p = self.pages[n].encode("utf8") if PY3K else self.pages[n] 
+                p = self.pages[n].encode("latin1") if PY3K else self.pages[n] 
                 p = zlib.compress(p)
             else:
                 p = self.pages[n]
@@ -1445,7 +1445,7 @@ class FPDF(object):
                 except IOError:
                     if not exception().errno == errno.EACCES:
                         raise  # Not a permission error.
-            if (font['cw'][cid] == 0):
+            if (cid > 65535) or (font['cw'][cid] == 0):
                 continue
             width = font['cw'][cid]
             if (width == 65535): width = 0

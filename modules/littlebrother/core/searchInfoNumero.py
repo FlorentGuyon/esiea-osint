@@ -14,10 +14,10 @@ class searchInfoNumero:
 
 		location = {
 			"01": "Ile de France.",
-			"02": "Nord-Ouest de la France.",
-			"03": "Nord-Est de la France.",
-			"04": "Sud-Est de la France.",
-			"05": "Sud-Ouest de la France."
+			"02": "Nord-Ouest de la France ou Océan Indien. (Bretagne, Centre Val de loire, Normandie, Pays de la Loire, Réunion, Mayotte)",
+			"03": "Nord-Est de la France. (Bourgogne-Franche-Compté, Grand Est, Hauts-de-France)",
+			"04": "Sud-Est de la France. (Auvergne-Rhône-Alpes, Corse, Occitanie Secteur Est, Provence-Alpes-Côtes d'Azur)",
+			"05": "Sud-Ouest de la France ou Outre-Mer. (Nouvelle-Aquitaine, Occitanie Secteur Ouest, Guadeloupe, Martinique, Guyane)"
 		}
 
 		num = num.replace(" ","").replace("+33", "0")
@@ -30,15 +30,11 @@ class searchInfoNumero:
 		tags = soup("p")
 
 		for n in tags:
-			line = n.string
+			line = n.text
 			p.append(line)
 
-		operator = p[2]
-		ville = p[3]
-
 		self.location = location.get(pfx)
-		self.city = ville
-		self.operator = operator
+		self.country = p[3]
 
 		if mob_fix(pfx) == 'Portable':
 			self.phone_type = "Portable"

@@ -3,7 +3,13 @@
 
 ### IMPORTS -----------------------------------------------------------------------------------------------------------------------------------------
 
-import os, json, subprocess, platform
+import os, json, subprocess, platform, time, requests
+
+from selenium import webdriver as wd
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from webdriver_manager.firefox import GeckoDriverManager
+from bs4 import BeautifulSoup as bs
 
 ### CONFIG ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -175,3 +181,64 @@ def extractJson(filePath):
 		jsonObject = json.loads(string)
 		# Return the result
 		return jsonObject
+
+
+def doesThisURLExist(url):
+
+	try:
+		doesThisURLExist = (requests.get(url, timeout=20).status_code == 200)
+	except:
+		doesThisURLExist = False
+
+	return doesThisURLExist
+
+
+def fromUsernameToAccounts(username):
+	
+	browser = wd.Firefox(executable_path = GeckoDriverManager().install())
+
+	browser.minimize_window()
+
+	# Go to the URL
+	browser.get("https://namechk.com/")
+
+	browser.find_element_by_id("q").send_keys(username)
+	browser.find_element(By.CSS_SELECTOR , '#app-form button.search-btn.btn.btn-block').send_keys(Keys.ENTER)
+
+	time.sleep(10)
+
+	# Load the page content
+	HTML = browser.page_source
+
+	browser.quit()
+
+	# Parse the content as lxml
+	parsedHTML = bs(HTML, 'lxml')
+
+	existingAccounts = parsedHTML.select("section.app-body .box.unavailable")
+
+	accountList = []
+	# This websites return a 200 stauts code even when the username is invalid
+	blackListedWebsites = ["Imgur", "ProductHunt", "Tripit", "Kik", "Hackernews", "Younow", "Mixcloud", "Ask FM", "Paypal"]
+	
+	for account in existingAccounts:
+		
+		website = account.text
+		link = None
+
+		if website in blackListedWebsites:
+			continue
+
+		if account.select_one("a") != None:
+			link = account.select_one("a")["href"]
+
+		elif username.count(".") == 0:
+			website = username + website
+			link = "https://www." + website
+
+		else:
+			continue
+
+		accountList.append({"name": website, "link": link})
+
+	return accountList

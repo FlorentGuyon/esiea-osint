@@ -3,7 +3,7 @@
 
 ### IMPORTS -----------------------------------------------------------------------------------------------------------------------------------------
 
-import sys, os.path, json, getopt, threading, time
+import sys, os.path, json, getopt, threading, time, datetime, asyncio, twint, collections, pygooglechart, re, requests
 
 # Check the current version of Python
 if sys.version_info[0] < 3:
@@ -18,7 +18,7 @@ from libs.fpdf.api import create_pdf
 response = input("Have you already start the setup.py program (in sudo mode) ? [Y/n] : ")
 
 # If the setup script is not running
-if response == "n":
+if response not in ["", "y", "Y"]:
 	# Quit
 	exit()
 # If the setup script is already running
@@ -44,17 +44,15 @@ class Phone:
 
 	number = None
 	deviceType = None
-	city = None
+	country = None
 	location = None
-	provider = None
 
 	def __init__(self, number = number):
 
 		self.number = number
 		self.deviceType = None
-		self.city = None
+		self.country = None
 		self.location = None
-		self.provider = None
 
 		threading.Thread(name = "Phone", target = self.findDetails).start()
 
@@ -64,9 +62,8 @@ class Phone:
 		results = searchNumberAPI(self.number)
 
 		self.deviceType = results["deviceType"]
-		self.city = results["city"]
+		self.country = results["country"]
 		self.location = results["location"]
-		self.provider = results["provider"]
 
 
 	def export(self, indentation = 0):
@@ -75,9 +72,8 @@ class Phone:
 			("\t" * indentation) + "PhoneNumber {",
 			("\t" * indentation) + "\tNumber:\t\t" + (self.number if self.number != None else "Unknow"),
 			("\t" * indentation) + "\tDevice Type:\t" + (self.deviceType if self.deviceType != None else "Unknow"),			
-			("\t" * indentation) + "\tCity:\t\t" + (self.city if self.city != None else "Unknow"),
+			("\t" * indentation) + "\tCountry:\t" + (self.country if self.country != None else "Unknow"),
 			("\t" * indentation) + "\tLocation:\t" + (self.location if self.location != None else "Unknow"),
-			("\t" * indentation) + "\tprovider:\t" + (self.provider if self.provider != None else "Unknow"),
 			("\t" * indentation) + "}",
 		]
 
@@ -99,14 +95,31 @@ class Photo:
 	contents = []
 
 
-	def __init__(self, url, path, name, date=None, location=None, contents=None):
+	def __init__(self, **kwargs):
 
-		self.url = url
-		self.name = name
-		self.date = date
-		self.location = location
-		self.path = path
-		self.contents = contents
+		self.url = None
+		self.name = None
+		self.date = None
+		self.location = None
+		self.path = None
+		self.contents = []
+
+		for key, value in kwargs.items():
+			if key == "url":
+				self.url = value
+			elif key == "name":
+				self.name = value
+			elif key == "date":
+				self.date = value
+			elif key == "location":
+				self.location = value
+			elif key == "path":
+				self.path = value
+			elif key == "contents":
+				self.contents = value
+
+		if self.date == None:
+			self.date = datetime.datetime.now()
 
 		if self.url != None:
 			threading.Thread(name="Photo", target=self.download).start()
@@ -114,7 +127,7 @@ class Photo:
 
 	def download(self):
 
-		download(self.url, self.path, self.name)
+		download(url = self.url, path = os.sep.join([self.path, self.name]), verbose=False, progressbar=False)
 
 
 	def export(self, indentation = 0):
@@ -143,12 +156,44 @@ class Account:
 	serviceName = None
 	serviceCategory = None
 	profileLink = None
+	qrcode = None
+	username = None
 
-	def __init__(self, serviceName = None, serviceCategory = None, profileLink = None):
+	def __init__(self, serviceName, serviceCategory = None, profileLink = None, username = None):
 
 		self.serviceName = serviceName
 		self.serviceCategory = serviceCategory
 		self.profileLink = profileLink
+		self.username = username
+		self.qrcode = None
+
+		if profileLink != None:
+			while self.qrcode == None:
+
+				qrPath = os.sep.join([resultsPath, serviceName])  
+
+				if username != None:
+					qrPath = os.sep.join([qrPath, username])
+				else:
+					print(serviceName)
+					break
+
+				self.qrcode = Photo(name="qrcode.png", path=qrPath)
+
+				if not os.path.exists(self.qrcode.path):
+					os.makedirs(self.qrcode.path)
+
+				chart = pygooglechart.QRChart(75, 75)
+				chart.add_data(self.profileLink)
+				chart.set_ec('H', 0)
+
+				try:
+					chart.download(os.sep.join([self.qrcode.path, self.qrcode.name]))
+				except:
+					time.sleep(1)
+					self.qrcode = None
+
+
 
 	def export(self, indentation = 0):
 
@@ -165,7 +210,6 @@ class Account:
 class InstagramAccount(Account):
 
 	name = None
-	username = None
 	userId = None
 	avatar = None
 	isPrivate = None
@@ -178,12 +222,15 @@ class InstagramAccount(Account):
 	phone = None
 	photos = []
 
-	def __init__(self, profileLink):
 
-		Account.__init__(self, serviceName = "Instagram", serviceCategory = "social", profileLink = profileLink)
+	def __init__(self, username = None, profileLink = None):
+
+		if (username != None) & (profileLink == None):
+			profileLink = "https://www.instagram.com/" + username
+
+		Account.__init__(self, serviceName = "Instagram", serviceCategory = "social", profileLink = profileLink, username = username)
 
 		self.name = None
-		self.username = None
 		self.userId = None
 		self.avatar = None
 		self.isPrivate = None
@@ -202,6 +249,9 @@ class InstagramAccount(Account):
 
 		data = extractInstagram(self.profileLink)
 
+		if data["username"] == None:
+			return
+
 		self.name = data["name"]
 		self.username = data["username"]
 		self.userId = data["id"]
@@ -213,12 +263,19 @@ class InstagramAccount(Account):
 		self.email = data["email"]
 		self.address = data["adresse"]
 
+		print(self.description)
+
 		if data["phone"] != None:
 			self.phone = Phone(data["phone"])
 
+		photosPath = os.sep.join([resultsPath, "Instagram", self.username, "posts"])
+
+		if not os.path.exists(photosPath):
+			os.makedirs(photosPath)
+
 		if data["profilPhoto"] != None:
 
-			path = os.sep.join([resultsPath, "images", "instagram", self.username])
+			path = os.sep.join([photosPath, ".."])
 			name = "{}.jpg".format(self.username)
 			self.avatar = Photo(url=data["profilPhoto"], path=path, name=name)
 
@@ -232,9 +289,7 @@ class InstagramAccount(Account):
 			name = photo["name"]
 			contents = photo["view"].split(", ")
 
-			path = os.sep.join([resultsPath, "images", "instagram", self.username, "photos"])		
-
-			self.photos.append(Photo(url=url, date=date, location=location, path=path, name=name, contents=contents))
+			self.photos.append(Photo(url=url, date=date, location=location, path=photosPath, name=name, contents=contents))
 
 
 	def export(self, indentation = 0):
@@ -269,6 +324,197 @@ class InstagramAccount(Account):
 
 	def __repr__(self):
 		return self.export()
+
+
+class TwitterAccount(Account):
+
+	userId = None
+	isPrivate = None
+	tweetsPath = None
+	tweetsChart = None
+	repliesChart = None
+	retweetsChart = None
+	likesChart = None
+	hoursChart = None
+	wordcloud = None
+
+
+	def __init__(self, username):
+
+		profileLink = "https://www.twitter.com/" + username
+
+		Account.__init__(self, serviceName = "Twitter", serviceCategory = "social", profileLink = profileLink, username = username)
+
+		twintPath = os.sep.join([resultsPath, "twitter", self.username])
+
+		if not os.path.exists(twintPath):
+			os.makedirs(twintPath)
+
+		self.userId = None
+		self.isPrivate = None
+		self.tweetsPath = os.sep.join([twintPath, "tweets.json"])
+		self.tweetsChart = None
+		self.repliesChart = None
+		self.retweetsChart = None
+		self.likesChart = None
+		self.hoursChart = None
+		self.wordcloud = None
+
+		threading.Thread(name="Account", target=self.extractData).start()
+
+
+	def extractData(self):
+
+		asyncio.set_event_loop(asyncio.new_event_loop())
+
+		c = twint.Config()
+		c.Username = self.username
+		c.Store_json = True
+		c.Output = self.tweetsPath
+		c.Resume = os.sep.join([resultsPath, "twitter", self.username, "resume.txt"])
+		c.Hide_output = True
+
+		twint.run.Search(c)
+
+		if isFile(self.tweetsPath):
+			self.isPrivate = False
+			with open(self.tweetsPath, "r", encoding="utf-8") as tweets:
+				for tweet in tweets:
+					tweet = json.loads(tweet)
+					self.userid = tweet["user_id"]
+					break
+		else:
+			self.isPrivate = True
+
+		self.createCharts()
+
+
+	def createCharts(self):
+
+		datetime, tweets_count, replies_count, retweets_count, likes_count = [], [], [], [], []
+		
+		twitterResultsPath = os.sep.join([resultsPath, "twitter", self.username])
+		words = ""
+		data = {}
+		hours = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+
+		if isFile(self.tweetsPath):
+
+			with open(self.tweetsPath, "r", encoding="utf-8") as tweets:
+				
+				for tweet in tweets:
+					tweet = json.loads(tweet)
+					hour = int(tweet["time"].split(":")[0])
+					hours[hour] += 1
+
+					year, month, day = tweet["date"].split("-")
+					key = "-".join([year, month])
+
+					if key not in data:
+						data[key] = {"datetime": key, "tweets_count": 0, "replies_count": 0, "retweets_count": 0, "likes_count": 0}
+
+					data[key]["tweets_count"] += 1
+					data[key]["replies_count"] += tweet["replies_count"]
+					data[key]["retweets_count"] += tweet["retweets_count"]
+					data[key]["likes_count"] += tweet["likes_count"]
+
+					match = re.findall(r"[#\-êçûéèààa-zA-Z]{6,}", tweet["tweet"])
+
+					if match != None:
+						words += " " + " ".join(match)
+
+			occurences = dict(collections.Counter(words.split(" ")))
+			filteredWords = " ".join([key for key, value in occurences.items() if value > 7])
+			wordsPath = os.sep.join([resultsPath, "twitter", self.username, "words.txt"])
+
+			with open(wordsPath, 'w'): pass
+			with open(wordsPath, "w", encoding="utf-8") as file:
+				file.write(filteredWords)
+
+			for key in data:
+				year, month = key.split("-")
+
+				if year not in datetime:
+					datetime.insert(0, year)
+			
+				tweets_count.insert(0, data[key]["tweets_count"])
+				replies_count.insert(0, data[key]["replies_count"])
+				retweets_count.insert(0, data[key]["retweets_count"])
+				likes_count.insert(0, data[key]["likes_count"])
+
+			try:
+
+				self.tweetsChart = Photo(name="tweets.png", path=twitterResultsPath)
+
+				maxValue = max(tweets_count)
+
+				chart = pygooglechart.SimpleLineChart(600, 150, "Tweets", y_range=(0, maxValue))
+				chart.set_colours(['3F51B5'])
+				chart.add_data(tweets_count)
+				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
+				chart.download(os.sep.join([self.tweetsChart.path, self.tweetsChart.name]))
+
+
+				self.repliesChart = Photo(name="replies.png", path=twitterResultsPath)
+
+				maxValue = max(replies_count)
+
+				chart = pygooglechart.SimpleLineChart(600, 150, "Replies", y_range=(0, maxValue))
+				chart.set_colours(['2196F3'])
+				chart.add_data(replies_count)
+				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
+				chart.download(os.sep.join([self.repliesChart.path, self.repliesChart.name]))
+
+
+				self.retweetsChart = Photo(name="retweets.png", path=twitterResultsPath)
+
+				maxValue = max(retweets_count)
+
+				chart = pygooglechart.SimpleLineChart(600, 150, "Retweets", y_range=(0, maxValue))
+				chart.set_colours(['00BCD4'])
+				chart.add_data(retweets_count)
+				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
+				chart.download(os.sep.join([self.retweetsChart.path, self.retweetsChart.name]))
+
+
+				self.likesChart = Photo(name="likes.png", path=twitterResultsPath)
+
+				maxValue = max(likes_count)
+
+				chart = pygooglechart.SimpleLineChart(600, 150, "Likes", y_range=(0, maxValue))
+				chart.set_colours(['009688'])
+				chart.add_data(likes_count)
+				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
+				chart.download(os.sep.join([self.likesChart.path, self.likesChart.name]))
+
+
+				self.hoursChart = Photo(name="hours.png", path=twitterResultsPath)
+
+				maxValue = max(hours)
+
+				chart = pygooglechart.GroupedVerticalBarChart(600, 200, "Posting hours", y_range=(0, maxValue))
+				chart.set_bar_width(15)
+				chart.set_colours(['F57C00'])
+				chart.add_data(hours)
+				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, ["00h", "01h", "02h", "03h", "04h", "05h", "06h", "07h", "08h", "09h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h", "21h", "22h", "23h"])
+				chart.download(os.sep.join([self.hoursChart.path, self.hoursChart.name]))
+
+
+				self.wordcloud = Photo(name="wordcloud.png", path=twitterResultsPath)
+
+				subprocess.run(["wordcloud_cli", "--text", wordsPath, "--imagefile", os.sep.join([self.wordcloud.path, self.wordcloud.name]), "--contour_color", "white", "--width", "600", "--height", "900", "--background", "white"])
+			
+			except:
+				print("Sometimes the \"pygooglechart\" library can be unstable, please restart the program.")
+
+
+	def __repr__(self):
+		return str(self.__dict__)
+
+
+	def __str__(self):
+		return str(self.__dict__)
+
 
 class Hash:
 
@@ -401,20 +647,14 @@ class Person:
 	accounts = []
 	phoneNumbers = []
 
-	def addPhoneNumbers(self, phoneNumbers):
+	def addPhoneNumbers(self, newPhoneNumbers):
 
-		if type(phoneNumbers) is str:
-			phoneNumbers = [phoneNumbers]
+		if type(newPhoneNumbers) is str:
+			newPhoneNumbers = [newPhoneNumbers]
 
-		[self.phoneNumbers.append(Phone(phoneNumber)) for phoneNumber in phoneNumbers]
-		
-
-	def addMiddleNames(self, middlenames):
-
-		if type(middlenames) is str:
-			middlenames = [middlenames]
-
-		self.middlenames += middlenames
+		for newNumber in newPhoneNumbers:
+			if newNumber not in [phone.number for phone in self.phoneNumbers]:
+				self.phoneNumbers.append(Phone(newNumber))
 
 
 	def addEmails(self, emails):
@@ -422,23 +662,29 @@ class Person:
 		if type(emails) is str:
 			emails = [emails]
 
-		[self.emails.append(Email(address)) for address in emails]
+		[self.emails.append(Email(address)) for address in emails if address not in self.emails]
 
 	def addUsernames(self, usernames):
-
+		
 		if type(usernames) is str:
 			usernames = [usernames]
 
-		[self.usernames.append(username) for username in usernames]
+		for username in usernames:
+			if username not in self.usernames:
+				self.usernames.append(username) 
+				threading.Thread(name="Username", target=self.scanUsername, kwargs={"username": username}).start()
 
 
 	def addAccount(self, account):
 
-		if account.__class__.__name__ not in ("Account", "InstagramAccount"):
+		if account.__class__.__name__ not in ("Account", "InstagramAccount", "TwitterAccount"):
 			wrongAttrType(self, "account", Account, account)
 
-		else:
+		elif account.__class__.__name__ == "Account":
 			self.accounts.append(account)
+
+		else:
+			self.accounts.insert(0, account)
 
 
 
@@ -498,14 +744,21 @@ class Person:
 				serviceCategory = result["data"][1]
 				# Get the path to the profile
 				profileLink = result["data"][2]
-				# If it is an Instagram account
-				if serviceName == "Instagram":
-					# Create the Instagram account
-					self.addAccount(InstagramAccount(profileLink = profileLink))
-				# If it is another account
-				else:
-					# Create the new account
-					self.addAccount(Account(serviceName = serviceName, serviceCategory = serviceCategory, profileLink = profileLink))
+
+				if profileLink[-1] == "/":
+					profileLink = profileLink[0:-1]
+
+				username = profileLink.split("/").pop()
+
+				if (profileLink not in [account.profileLink for account in self.accounts]) and (doesThisURLExist(profileLink)):
+					# If it is an Instagram account
+					if serviceName == "Instagram":
+						# Create the Instagram account
+						self.addAccount(InstagramAccount(username = username, profileLink = profileLink))
+					# If it is another account
+					else:
+						# Create the new account
+						self.addAccount(Account(username = username, serviceName = serviceName, serviceCategory = serviceCategory, profileLink = profileLink))
 			
 			# Else if the result is a username
 			elif result["event_type"] == "USERNAME":
@@ -513,22 +766,68 @@ class Person:
 				self.addUsernames(result["data"])
 
 
-	def __init__(self, firstname = None, middlenames = None, lastname = None):
+	def verifyAccount(self, **kwargs):
 
-		self.firstname = firstname
-		self.lastname = lastname
+		if doesThisURLExist(kwargs["account"]["link"]):
+			if kwargs["account"]["name"] == "Instagram":
+				self.addAccount(InstagramAccount(username = kwargs["account"]["username"]))
+			elif kwargs["account"]["name"] == "Twitter":
+				self.addAccount(TwitterAccount(username = kwargs["account"]["username"]))
+			else:
+				self.addAccount(Account(serviceName = kwargs["account"]["name"], profileLink = kwargs["account"]["link"], username = kwargs["account"]["username"]))
+
+
+	def scanUsername(self, **kwargs):
+
+		accounts = fromUsernameToAccounts(kwargs["username"])
+
+		for account in accounts:
+			account["username"] = kwargs["username"]
+			if account["link"] not in [account.profileLink for account in self.accounts]:
+				threading.Thread(name="URL", target=self.verifyAccount, kwargs={"account": account}).start()
+
+
+	def __init__(self, **kwargs):
+
+		self.firstname = None
+		self.lastname = None
+		self.middlenames = []
 		self.usernames = []
-		self.emails = []
 		self.accounts = []
+		self.emails = []
 		self.phoneNumbers = []
 
-		if middlenames != None:
-			self.addMiddleNames(middlenames)
+		for key, value in kwargs.items():
 
+			if key == "firstname":
+				self.firstname = value
+
+			elif key == "middlename":
+				self.middlenames = value
+
+			elif key == "lastname":
+				self.lastname = value
+
+			elif key == "username":
+				self.addUsernames(value)
+
+			elif key == "email":
+				self.addEmails(value)
+
+			elif key == "phone":
+				self.addPhoneNumbers(value)
 
 		if self.firstname != None and self.lastname != None:
 
-			threading.Thread(name="Person", target=self.scanName).start()
+			compactFirstname = self.firstname.lower().replace(" ", "")
+			compactLastname = self.lastname.lower().replace(" ", "")
+
+			self.addUsernames([
+				"{}{}".format(compactFirstname, compactLastname),
+				"{}{}".format(compactLastname, compactFirstname),
+			])
+			# Spiderfoot is very slow and the results are almost all wrong
+			#threading.Thread(name="Person", target=self.scanName).start()
 
 
 	# Represent the attribute
@@ -540,7 +839,7 @@ class Person:
 ### MAIN --------------------------------------------------------------------------------------------------------------------------------------------
 
 stop = False
-threadTypes = ["Person", "Email", "Hash", "Phone", "Account", "Photo"]
+threadTypes = ["Person", "Email", "Hash", "Phone", "Account", "Photo", "Username", "URL"]
 
 def displayStats():
 
@@ -576,13 +875,18 @@ def displayHelp():
 		"",
 		"  ╔════════════════════╗",
 		"  ║ DO YOU NEED HELP ? ║",
-		"  ╠════════════════════╩═════════════════════════════════════════════════════════════════════╗",
-		"  ║ Enter your argument as follows:                                                          ║",
-		"  ║                                                                                          ║",
-		"  ║   ■ python scan.py -h or --help                                                          ║",
-		"  ║   ■ python scan.py -n \"<firstname> <lastname>\" or --name=\"<firstname> <lastname>\"        ║",
-		"  ║                                                                                          ║",
-		"  ╚══════════════════════════════════════════════════════════════════════════════════════════╝"
+		"  ╠════════════════════╩═══════════════════════════════════════════════════════════════════════╗",
+		"  ║ Enter your arguments as follows:                                                           ║",
+		"  ║                                                                                            ║",
+		"  ║   ■ -h                                  or --help                                          ║",
+		'  ║   ■ -f "<firstname>"                    or --firstname="<firstname>"                       ║',
+		'  ║   ■ -l "<lastname>"                     or --lastname="<lastname>"                         ║',
+		'  ║   ■ -m "<middlename1>,<middlename2>..." or --middlename="<middlename1>,<middlename2>..."   ║',
+		'  ║   ■ -u "<username1>,<username2>..."     or --username="<username1>,<username2>..."         ║',
+		'  ║   ■ -e "<email1>,<email2>..."           or --email="<email1>,<email2>..."                  ║',
+		'  ║   ■ -p "<phone1>,<phone2>..."           or --phone="<phone1>,<phone2>..."                  ║',
+		"  ║                                                                                            ║",
+		"  ╚════════════════════════════════════════════════════════════════════════════════════════════╝"
 	]
 	# Print the final message
 	print("\n".join(lines))
@@ -593,7 +897,7 @@ def main(argv):
 	# Test if the arguments are valid
 	try:
 		# Extract the arguments following this options
-		opts, args = getopt.getopt(argv, "hn:", ["help", "name="])
+		opts, args = getopt.getopt(argv, "hf:l:e:m:p:u:", ["help", "firstname=", "lastname=", "email=", "middlename=", "phone=", "username="])
 	# If the arguments are invalid
 	except:
 		# Display an help message
@@ -608,46 +912,97 @@ def main(argv):
 		# Exit the script
 		fatalError("The arguments are missing.")
 
+	data = {}
+
 	# For all arguments
 	for opt, arg in opts:
+		
 		# If the argument is about help
 		if opt in ("-h", "--help"):
 			displayHelp()
 			quit()
-		# Else if the argument is about a name
-		elif opt in ("-n", "--name"):
 
-			arg = arg.split(" ")
+		else:
+			
+			opt = opt.replace("-", "")
 
-			if len(arg) < 2:
-				displayHelp()
+			key = None
+
+			if len(opt) == 1:
+				if opt == "f": key = "firstname"
+				elif opt == "l": key = "lastname"
+				elif opt == "m": key = "middlename"
+				elif opt == "u": key = "username"
+				elif opt == "e": key = "email"
+				elif opt == "p": key = "phone"
 
 			else:
-				(firstname, lastname) = arg
+				key = opt
 
-				global resultsPath
-				resultsPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "results", "{} {}".format(firstname, lastname)])
+			if (key not in ["firstname", "lastname", "middlename"]) & (arg.count(" ") > 0):
+				print("Error: Unauthorized spaces, please use commas as separator for {} list.".format(key))
+				quit()
 
-				display = threading.Thread(target = displayStats)
-				display.start()
 
-				target = Person(firstname = firstname, lastname = lastname)
-				#target.addAccount(InstagramAccount("https://www.instagram.com/_where_to_travel_"))
-				#target.addAccount(InstagramAccount("https://www.instagram.com/_grayrabbit"))
-				#target.addAccount(Account(serviceName="Youtube", serviceCategory="video", profileLink="www.yt.com"))
+			if key in ["firstname", "lastname"]:
+				data[key] = arg.strip()
 
-				while len([thread for thread in threading.enumerate() if thread.name in threadTypes]) > 0:
-					[thread.join() for thread in threading.enumerate() if thread.name in threadTypes]
+			else:
+				arg = arg.split(",")
+				for value in arg:
+					if value != "":
+						if key not in data.keys():
+							data[key] = []
+						data[key].append(value.strip())
+					else:
+						print("Warning: {} list is empty.".format(key)) 
 
-				time.sleep(0.2)
 
-				global stop
-				stop = True
+	identity = ""
 
-				display.join()
+	if "firstname" in data.keys():
+		identity += data["firstname"]
 
-				#print(target)
-				create_pdf(target, resultsPath)
+	if "middlename" in data.keys(): 
+		if identity != "":
+			identity += " "
+		identity += " ".join(data["middlename"])
+
+	if "lastname" in data.keys():
+		if identity != "":
+			identity += " "
+		identity += data["lastname"]
+
+	for nameSource in ["username", "email", "phone", "twitter", "instagram"]:
+		if identity == "":
+			if nameSource in data.keys(): 
+				identity += data[nameSource][0]
+				break
+
+	if identity == "":
+		identity += datetime.datetime.now().strftime("%d %B %Y %Hh%M %Ss")
+
+	global resultsPath
+	resultsPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "results", identity])
+	display = threading.Thread(target = displayStats)
+	display.start()
+
+	from modules.photon.photon import main as photon
+
+	target = Person(**data)
+
+	while len([thread for thread in threading.enumerate() if thread.name in threadTypes]) > 0:
+		[thread.join() for thread in threading.enumerate() if thread.name in threadTypes]
+
+	time.sleep(0.2)
+
+	global stop
+	stop = True
+
+	display.join()
+
+	print(target)
+	create_pdf(target, resultsPath, identity)
 
 
 if __name__ == "__main__":
@@ -656,4 +1011,4 @@ if __name__ == "__main__":
 	main(sys.argv[1:])
 
 ## ------------------------------------------------------------------------------------------------
-#	--threads=1, --level=2, --keys, --regex, "{\"email\": \"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-]+\", \"phone number\": \"\\(?\\+?[0-9]{1,4}\\)?[1-9] [0-9]{2} [0-9]{2} [0-9]{2} [0-9]{2}\"}"
+#python "ESIEA\5A\PST5 - OSINT\POC\scan.py" -t "KerriganNuNue"

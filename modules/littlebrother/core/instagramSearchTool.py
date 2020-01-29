@@ -16,7 +16,7 @@ class instagramSearchTool:
 		jsonData 	  = re.findall(r"<script type=\"text/javascript\">(.*);</script>", page)
 		
 		if jsonData:
-			jsonDataFound = jsonData[0].replace("window._sharedData = ", "")
+			jsonDataFound = jsonData[0][21:]
 			values 		  = json.loads(jsonDataFound)
 
 		else:
@@ -117,7 +117,7 @@ class instagramSearchTool:
 			page = req.content.decode('utf-8')
 			
 			values = self._getJsonData(page)
-
+			
 			try:
 				values = values['entry_data']['ProfilePage'][0]['graphql']['user']
 			

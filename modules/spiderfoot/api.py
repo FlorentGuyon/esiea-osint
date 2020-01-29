@@ -44,7 +44,6 @@ def launchScan(baseCriteria):
         s = result.json()
         scanId= s[1]
         status= ""
-        print("")
 
         #Waiting for scan to finish
         while status != "FINISHED":
