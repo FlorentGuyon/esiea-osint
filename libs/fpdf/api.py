@@ -199,11 +199,8 @@ def create_pdf(person, resultsPath, identity):
 
 		for phone in person.phoneNumbers:
 			newLine(2)
-			if phone.location != None:
-				location = ", ({})".format(phone.location) 
-			else:
-				location = ""
-			newValue(indentation=1, description="{} ({})\nCountry: {}, ({})", values=[phone.number, phone.deviceType, phone.country, location])
+			location = ", ({})".format(phone.location) if phone.location != None else ""
+			newValue(indentation=1, description="{} ({})\nCountry: {}{}", values=[phone.number, phone.deviceType, phone.country, location])
 
 
 	# Accounts
@@ -251,23 +248,23 @@ def create_pdf(person, resultsPath, identity):
 
 					for photo in account.photos:
 
-						if pdf.get_x() + imageSize > 200:
+						if photo.isDownloaded:
+							if pdf.get_x() + imageSize > 200:
+
+								newLine((imageSize * 1.5) / lineHeight)
+								pdf.set_x(leftMargin)
+
+							if pdf.get_y() + (imageSize *2) > areaHeight: 
+
+								pdf.add_page()
+
+							pdf.set_x(pdf.get_x() + imageMargin)
+
+							newImage(os.sep.join([photo.path, photo.name]), imageSize)
+							
+							pdf.set_x(pdf.get_x() + imageSize + imageMargin)
 
 							newLine((imageSize * 1.5) / lineHeight)
-							pdf.set_x(leftMargin)
-
-						if pdf.get_y() + (imageSize *2) > areaHeight: 
-
-							pdf.add_page()
-
-						pdf.set_x(pdf.get_x() + imageMargin)
-
-						newImage(os.sep.join([photo.path, photo.name]), imageSize)
-						
-						pdf.set_x(pdf.get_x() + imageSize + imageMargin)
-
-
-					newLine((imageSize * 1.5) / lineHeight)
 
 				else:
 					newLine(3)
