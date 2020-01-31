@@ -178,13 +178,14 @@ def create_pdf(person, resultsPath, identity):
 
 		for email in person.emails:
 
+			newLine(2)
 			newValue(indentation=1, values=email.address)
 
 			if len(email.leaks) > 0:
 				newValue(indentation=2, values="Leaks found:")
 
 				for leak in email.leaks:
-					newValue(indentation=3, description="From {}, ({}):\n{}\n", values=[leak["source"], leak["type"], leak["value"]])
+					newValue(indentation=3, description="From {}, ({}):\n{}\n\n", values=[leak["source"], leak["type"], leak["value"]])
 			else:
 				newValue(indentation=2, values="No leaks found.")
 
@@ -197,8 +198,12 @@ def create_pdf(person, resultsPath, identity):
 		newSection("PHONE NUMBERS")
 
 		for phone in person.phoneNumbers:
-			newValue(indentation=1, description="{} ({})\nCountry: {}, ({})", values=[phone.number, phone.deviceType, phone.country, phone.location])
-			newLine()
+			newLine(2)
+			if phone.location != None:
+				location = ", ({})".format(phone.location) 
+			else:
+				location = ""
+			newValue(indentation=1, description="{} ({})\nCountry: {}, ({})", values=[phone.number, phone.deviceType, phone.country, location])
 
 
 	# Accounts
@@ -229,7 +234,7 @@ def create_pdf(person, resultsPath, identity):
 					newValue(indentation=5, description="Phone number: {}", values=account.phone)
 				newValue(indentation=5, description="Followers: {}    Followings: {}    Posts: {}", values=[account.followersCount, account.friendsCount, account.postsCount])
 				newLine()
-				if account.avatar != None:
+				if (account.avatar != None) and (account.avatar.isDownloaded):
 					newImage(os.sep.join([account.avatar.path, account.avatar.name]), 50, x=pdf.get_x()+10, y=100)
 				if account.description != None:
 					newValue(indentation=7, description="Biography:\n{}", values=account.description)
@@ -277,23 +282,23 @@ def create_pdf(person, resultsPath, identity):
 
 				else:
 					newLine(5)
-					if account.tweetsChart != None:
+					if account.tweetsChart.isDownloaded:
 						newImage(os.sep.join([account.tweetsChart.path, account.tweetsChart.name]), 180)
 						newLine(10)
-					if account.repliesChart != None:
+					if account.repliesChart.isDownloaded:
 						newImage(os.sep.join([account.repliesChart.path, account.repliesChart.name]), 180)
 						newLine(10)
-					if account.retweetsChart != None:
+					if account.retweetsChart.isDownloaded:
 						newImage(os.sep.join([account.retweetsChart.path, account.retweetsChart.name]), 180)
 						newLine(10)
-					if account.likesChart != None:
+					if account.likesChart.isDownloaded:
 						newImage(os.sep.join([account.likesChart.path, account.likesChart.name]), 180)
 						newLine(10)
 						pdf.add_page()
-					if account.hoursChart != None:
+					if account.hoursChart.isDownloaded:
 						newImage(os.sep.join([account.hoursChart.path, account.hoursChart.name]), 180, x=10)
 						newLine(20)
-					if account.wordcloud != None:
+					if account.wordcloud.isDownloaded:
 						pdf.add_page()
 						newImage(os.sep.join([account.wordcloud.path, account.wordcloud.name]), 150, x=30, y=pdf.get_x() + 30)
 			

@@ -93,6 +93,7 @@ class Photo:
 	location = None
 	path = None
 	contents = []
+	isDownloaded = None
 
 
 	def __init__(self, **kwargs):
@@ -103,6 +104,7 @@ class Photo:
 		self.location = None
 		self.path = None
 		self.contents = []
+		self.isDownloaded = False
 
 		for key, value in kwargs.items():
 			if key == "url":
@@ -128,6 +130,9 @@ class Photo:
 	def download(self):
 
 		download(url = self.url, path = os.sep.join([self.path, self.name]), verbose=False, progressbar=False)
+
+		if isFile(os.sep.join([self.path, self.name])):
+			self.isDownloaded = True
 
 
 	def export(self, indentation = 0):
@@ -262,8 +267,6 @@ class InstagramAccount(Account):
 		self.description = data["biography"]
 		self.email = data["email"]
 		self.address = data["adresse"]
-
-		print(self.description)
 
 		if data["phone"] != None:
 			self.phone = Phone(data["phone"])
@@ -442,87 +445,109 @@ class TwitterAccount(Account):
 				retweets_count.insert(0, data[key]["retweets_count"])
 				likes_count.insert(0, data[key]["likes_count"])
 
+
+			self.tweetsChart = Photo(name="tweets.png", path=twitterResultsPath)
+
+			maxValue = max(tweets_count)
+			chartPath = os.sep.join([self.tweetsChart.path, self.tweetsChart.name])
+
+			chart = pygooglechart.SimpleLineChart(600, 150, "Tweets", y_range=(0, maxValue))
+			chart.set_colours(['3F51B5'])
+			chart.add_data(tweets_count)
+			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
+
+			if isFile(chartPath):
+				self.tweetsChart.isDownloaded = True
+
 			try:
-				self.tweetsChart = Photo(name="tweets.png", path=twitterResultsPath)
-
-				maxValue = max(tweets_count)
-				chartPath = os.sep.join([self.tweetsChart.path, self.tweetsChart.name])
-
-				chart = pygooglechart.SimpleLineChart(600, 150, "Tweets", y_range=(0, maxValue))
-				chart.set_colours(['3F51B5'])
-				chart.add_data(tweets_count)
-				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 				chart.download(chartPath)
-
 			except:
-				self.tweetsChart = None
+				pass
+
+
+			self.repliesChart = Photo(name="replies.png", path=twitterResultsPath)
+
+			maxValue = max(replies_count)
+			chartPath = os.sep.join([self.repliesChart.path, self.repliesChart.name])
+
+			chart = pygooglechart.SimpleLineChart(600, 150, "Replies", y_range=(0, maxValue))
+			chart.set_colours(['2196F3'])
+			chart.add_data(replies_count)
+			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 
 			try:
-				self.repliesChart = Photo(name="replies.png", path=twitterResultsPath)
-
-				maxValue = max(replies_count)
-				chartPath = os.sep.join([self.repliesChart.path, self.repliesChart.name])
-
-				chart = pygooglechart.SimpleLineChart(600, 150, "Replies", y_range=(0, maxValue))
-				chart.set_colours(['2196F3'])
-				chart.add_data(replies_count)
-				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 				chart.download(chartPath)
-
 			except:
-				self.repliesChart = None
+				pass
+
+			if isFile(chartPath):
+				self.repliesChart.isDownloaded = True
+
+
+			self.retweetsChart = Photo(name="retweets.png", path=twitterResultsPath)
+
+			maxValue = max(retweets_count)
+			chartPath = os.sep.join([self.retweetsChart.path, self.retweetsChart.name])
+
+			chart = pygooglechart.SimpleLineChart(600, 150, "Retweets", y_range=(0, maxValue))
+			chart.set_colours(['00BCD4'])
+			chart.add_data(retweets_count)
+			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 
 			try:
-				self.retweetsChart = Photo(name="retweets.png", path=twitterResultsPath)
-
-				maxValue = max(retweets_count)
-				chartPath = os.sep.join([self.retweetsChart.path, self.retweetsChart.name])
-
-				chart = pygooglechart.SimpleLineChart(600, 150, "Retweets", y_range=(0, maxValue))
-				chart.set_colours(['00BCD4'])
-				chart.add_data(retweets_count)
-				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 				chart.download(chartPath)
-
 			except:
-				self.retweetsChart = None
+				pass
 
-			try:
-				self.likesChart = Photo(name="likes.png", path=twitterResultsPath)
+			if isFile(chartPath):
+				self.retweetsChart.isDownloaded = True
 
-				maxValue = max(likes_count)
-				chartPath = os.sep.join([self.likesChart.path, self.likesChart.name])
 
-				chart = pygooglechart.SimpleLineChart(600, 150, "Likes", y_range=(0, maxValue))
-				chart.set_colours(['009688'])
-				chart.add_data(likes_count)
-				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
-				chart.download(chartPath)
+			self.likesChart = Photo(name="likes.png", path=twitterResultsPath)
+
+			maxValue = max(likes_count)
+			chartPath = os.sep.join([self.likesChart.path, self.likesChart.name])
+
+			chart = pygooglechart.SimpleLineChart(600, 150, "Likes", y_range=(0, maxValue))
+			chart.set_colours(['009688'])
+			chart.add_data(likes_count)
+			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 			
+			try:
+				chart.download(chartPath)
 			except:
-				self.likesChart = None
+				pass
+
+			if isFile(chartPath):
+				self.likesChart.isDownloaded = True
+
+
+			self.hoursChart = Photo(name="hours.png", path=twitterResultsPath)
+		
+			maxValue = max(hours)
+			chartPath = os.sep.join([self.hoursChart.path, self.hoursChart.name])
+
+			chart = pygooglechart.GroupedVerticalBarChart(600, 200, "Posting hours", y_range=(0, maxValue))
+			chart.set_bar_width(15)
+			chart.set_colours(['F57C00'])
+			chart.add_data(hours)
+			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, ["00h", "01h", "02h", "03h", "04h", "05h", "06h", "07h", "08h", "09h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h", "21h", "22h", "23h"])
 
 			try:
-				self.hoursChart = Photo(name="hours.png", path=twitterResultsPath)
-
-				maxValue = max(hours)
-				chartPath = os.sep.join([self.hoursChart.path, self.hoursChart.name])
-
-				chart = pygooglechart.GroupedVerticalBarChart(600, 200, "Posting hours", y_range=(0, maxValue))
-				chart.set_bar_width(15)
-				chart.set_colours(['F57C00'])
-				chart.add_data(hours)
-				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, ["00h", "01h", "02h", "03h", "04h", "05h", "06h", "07h", "08h", "09h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h", "21h", "22h", "23h"])
 				chart.download(chartPath)
-
 			except:
-				self.hoursChart = None
+				pass
+
+			if isFile(chartPath):
+				self.hoursChart.isDownloaded = True
+
 
 			if filteredWords != "":
 				self.wordcloud = Photo(name="wordcloud.png", path=twitterResultsPath)
 				chartPath = os.sep.join([self.wordcloud.path, self.wordcloud.name])
 
 				result = subprocess.run(["wordcloud_cli", "--text", wordsPath, "--imagefile", chartPath, "--contour_color", "white", "--width", "600", "--height", "900", "--background", "white"])
+				self.wordcloud.isDownloaded = True
 
 
 	def __repr__(self):
@@ -568,9 +593,13 @@ class Hash:
 		
 		return "\n".join(lines)
 
+	def __str__(self):
+
+		return str(self.__dict__)
+
 	def __repr__(self):
 
-		return self.export()
+		return str(self.__dict__)
 
 class Email:
 
@@ -881,7 +910,7 @@ def displayStats():
 
 			lines += ["    ■ {}\t  {}\t| {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
 
-			#clear()
+			clear()
 			print("\n".join(lines))
 			time.sleep(0.1)
 
@@ -1028,4 +1057,3 @@ if __name__ == "__main__":
 	main(sys.argv[1:])
 
 ## ------------------------------------------------------------------------------------------------
-#python "ESIEA\5A\PST5 - OSINT\POC\scan.py" -t "KerriganNuNue"
