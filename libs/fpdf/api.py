@@ -214,7 +214,7 @@ def create_pdf(person, resultsPath, identity):
 			newLink(account.profileLink, align="R")
 			newLine()
 
-			if account.qrcode != None:
+			if (account.qrcode != None) and (account.qrcode.isDownloaded):
 				newImage(os.sep.join([account.qrcode.path, account.qrcode.name]), 30, x=20, y=pdf.get_y(), link = account.profileLink)
 				newLine()
 

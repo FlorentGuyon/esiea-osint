@@ -26,7 +26,6 @@ else:
 	# Clear the shell and go on
 	clear()
 
-# Manage arguments
 from modules.littlebrother.core.searchInstagram import extractInstagram
 from modules.littlebrother.core.leaked import leaked
 from modules.littlebrother.core.searchNumber import searchNumberAPI
@@ -39,6 +38,16 @@ from download import download
 resultsPath = None
 
 ## Classes --------------------------------------------------------------------------------------
+
+class CustomEncoder(json.JSONEncoder):
+
+	def default(self, complexObject):
+
+		if isinstance(complexObject, datetime.datetime):
+			return complexObject.replace(microsecond=0).isoformat()
+
+		return {complexObject.__class__.__name__: complexObject.__dict__}
+
 
 class Phone:
 
@@ -64,25 +73,6 @@ class Phone:
 		self.deviceType = results["deviceType"]
 		self.country = results["country"]
 		self.location = results["location"]
-
-
-	def export(self, indentation = 0):
-
-		lines = [
-			("\t" * indentation) + "PhoneNumber {",
-			("\t" * indentation) + "\tNumber:\t\t" + (self.number if self.number != None else "Unknow"),
-			("\t" * indentation) + "\tDevice Type:\t" + (self.deviceType if self.deviceType != None else "Unknow"),			
-			("\t" * indentation) + "\tCountry:\t" + (self.country if self.country != None else "Unknow"),
-			("\t" * indentation) + "\tLocation:\t" + (self.location if self.location != None else "Unknow"),
-			("\t" * indentation) + "}",
-		]
-
-		return "\n".join(lines)
-
-
-	def __repr__(self):
-
-		return self.export()
 
 
 class Photo:
@@ -135,27 +125,6 @@ class Photo:
 			self.isDownloaded = True
 
 
-	def export(self, indentation = 0):
-
-		lines = [
-			("\t" * indentation) + "Photo {",
-			("\t" * indentation) + "\tUrl:\t\t{}".format(self.url if self.url != None else "Unknow"),
-			("\t" * indentation) + "\tName:\t\t{}".format(self.name if self.name != None else "Unknow"),
-			("\t" * indentation) + "\tDate:\t\t{}".format(self.date if self.date != None else "Unknow"),
-			("\t" * indentation) + "\tLocation:\t{}".format(self.location if self.location != None else "Unknow"),
-			("\t" * indentation) + "\tPath:\t\t{}".format(self.path if self.path != None else "Unknow"),
-			("\t" * indentation) + "\tContents:\t{}".format(", ".join(self.contents) if self.contents != None else "Unknow"),
-			("\t" * indentation) + "}"
-		]
-
-		return "\n".join(lines)
-
-
-	def __repr__(self):
-
-		return self.export()
-
-
 class Account:
 
 	serviceName = None
@@ -192,25 +161,14 @@ class Account:
 				chart.add_data(self.profileLink)
 				chart.set_ec('H', 0)
 
+				self.qrcode.isDownloaded = True
+
 				try:
 					chart.download(os.sep.join([self.qrcode.path, self.qrcode.name]))
 				except:
 					time.sleep(1)
-					self.qrcode = None
+					self.qrcode.isDownloaded = False
 
-
-
-	def export(self, indentation = 0):
-
-		lines = [
-			("\t" * indentation) + "Account {",
-			("\t" * indentation) + "\tName:\t\t" + (self.serviceName if self.serviceName != None else "Unknow"),
-			("\t" * indentation) + "\tCategory:\t" + (self.serviceCategory if self.serviceCategory != None else "Unknow"),
-			("\t" * indentation) + "\tLink:\t\t" + (self.profileLink if self.profileLink != None else "Unknow"),
-			("\t" * indentation) + "}"
-		]
-
-		return "\n".join(lines)
 
 class InstagramAccount(Account):
 
@@ -292,41 +250,7 @@ class InstagramAccount(Account):
 			name = photo["name"]
 			contents = photo["view"].split(", ")
 
-			self.photos.append(Photo(url=url, date=date, location=location, path=photosPath, name=name, contents=contents))
-
-
-	def export(self, indentation = 0):
-
-		lines = [
-			("\t" * indentation) + "InstagramAccount {",
-			("\t" * indentation) + "\tName:\t\t{}".format(self.serviceName if self.serviceName != None else "Unknow"),
-			("\t" * indentation) + "\tCategory:\t{}".format(self.serviceCategory if self.serviceCategory != None else "Unknow"),
-			("\t" * indentation) + "\tLink:\t\t{}".format(self.profileLink if self.profileLink != None else "Unknow"),
-			("\t" * indentation) + "\tUsername:\t{}".format(self.username if self.username != None else "Unknow"),
-			("\t" * indentation) + "\tUser ID:\t{}".format(self.userId if self.userId != None else "Unknow"),
-			("\t" * indentation) + "\tAvatar path:\t{}".format(str(self.avatar) if self.avatar != None else "Unknow"),
-			("\t" * indentation) + "\tisPrivate:\t{}".format(self.isPrivate if self.isPrivate != None else "Unknow"),
-			("\t" * indentation) + "\tFollowers:\t{}".format(self.followersCount if self.followersCount != None else "Unknow"),
-			("\t" * indentation) + "\tFriends:\t{}".format(self.friendsCount if self.friendsCount != None else "Unknow"),
-			("\t" * indentation) + "\tPosts:\t\t{}".format(self.postsCount if self.postsCount != None else "Unknow"),
-			("\t" * indentation) + "\tDescription:\t{}".format(self.description if self.description != None else "Unknow"),
-			("\t" * indentation) + "\tEmail:\t\t{}".format(self.email if self.email != None else "Unknow"),
-			("\t" * indentation) + "\tAddress:\t{}".format(self.address if self.address != None else "Unknow"),
-			("\t" * indentation) + "\tPhone:\t\t{}".format(self.phone if self.phone != None else "Unknow"),
-			("\t" * indentation) + "\tPhotos : ["
-		]
-
-		lines += [photo.export(indentation +2) for photo in self.photos]
-
-		lines += [
-			("\t" * indentation) + "\t]",
-			("\t" * indentation) + "}",
-		]
-
-		return "\n".join(lines)
-
-	def __repr__(self):
-		return self.export()
+			self.photos.append(Photo(url=url, date=date, location=location, path=photosPath, name=name, contents=contents))		
 
 
 class TwitterAccount(Account):
@@ -389,7 +313,7 @@ class TwitterAccount(Account):
 		else:
 			self.isPrivate = True
 
-		self.createCharts()
+		self.createCharts()		
 
 
 	def createCharts(self):
@@ -550,14 +474,6 @@ class TwitterAccount(Account):
 				self.wordcloud.isDownloaded = True
 
 
-	def __repr__(self):
-		return str(self.__dict__)
-
-
-	def __str__(self):
-		return str(self.__dict__)
-
-
 class Hash:
 
 	value = None
@@ -581,25 +497,10 @@ class Hash:
 			threading.Thread(name="Hash", target=self.crackHash).start()
 
 
-	def export(self, indentation = 0):
-
-		lines = [
-			("\t" * indentation) + "Hash {",
-			("\t" * indentation) + "\tvalue:\t\t" + self.value,
-			("\t" * indentation) + "\tprotocol:\t" + (self.protocol if self.protocol != None else "Unknow"),
-			("\t" * indentation) + "\tcrack:\t\t" + (self.crack if self.crack != None else "Unknow"),
-			("\t" * indentation) + "}"
-		]
-		
-		return "\n".join(lines)
-
-	def __str__(self):
-
-		return str(self.__dict__)
-
 	def __repr__(self):
 
-		return str(self.__dict__)
+		return json.dumps(self.__dict__, indent=4, separators=(',', ': '), cls=CustomEncoder)
+
 
 class Email:
 
@@ -645,33 +546,6 @@ class Email:
 				error("{} is an unknow data type of email leak.".format(dataType))
 
 
-	def export(self, indentation = 0):
-
-		lines = [
-			("\t" * indentation) + "Email {",
-			("\t" * indentation) + "\taddress:\t" + self.address,
-			("\t" * indentation) + "\tleaks: ["
-		]
-
-		for leak in self.leaks:
-
-			line = ("\t" * (indentation +2)) + "Source: {}, Type: {}, Value: ".format(leak["source"], leak["type"])
-
-			if leak["type"] == "hash":
-				line += "\n" + leak["value"].export(indentation +3)
-			else:
-				line += leak["value"]
-
-			lines += [line]
-
-		lines += [
-			("\t" * indentation) + "\t]",
-			("\t" * indentation) + "}"
-		]
-
-		return "\n".join(lines)
-
-
 	def __init__(self, address):
 
 		self.address = address
@@ -679,9 +553,6 @@ class Email:
 
 		threading.Thread(name = "Email", target = self.scanLeaks).start()
 
-	def __repr__(self):
-
-		return self.export()
 
 class Person:
 
@@ -732,41 +603,6 @@ class Person:
 		else:
 			self.accounts.insert(0, account)
 
-
-
-	def export(self, indentation = 0):
-		
-		lines = [
-			"PERSON {",
-			"\tFirstname:\t" 	+ (self.firstname if self.firstname != None else "Unknow"),
-			"\tMiddlenames:\t" 	+ (", ".join(self.middlenames) if len(self.middlenames) != 0 else "Unknow"),
-			"\tLastname:\t" 	+ (self.lastname if self.lastname != None else "Unknow"),
-			"\tEmails: ["
-		]
-		
-		lines += [email.export(indentation +2) for email in self.emails]
-
-		lines += [
-			"\t]",
-			"\tUsernames: "		+ (", ".join(self.usernames) if len(self.usernames) != 0 else "Unknow"),
-			"\tAccounts: ["
-		]
-
-		lines += [account.export(indentation +2) for account in self.accounts]
-
-		lines += [
-			"\t]",
-			"\tPhone numbers: ["
-		]
-
-		lines += [phoneNumber.export(indentation +2) for phoneNumber in self.phoneNumbers]
-
-		lines += [
-			"\t]",
-			"}"
-		]
-
-		return "\n".join(lines);
 
 	# Scan the name with spiderfoot
 	def scanName(self):
@@ -875,11 +711,17 @@ class Person:
 			# Spiderfoot is very slow and the results are almost all wrong
 			#threading.Thread(name="Person", target=self.scanName).start()
 
-
-	# Represent the attribute
 	def __repr__(self):
-		# Return the formated string
-		return self.export()
+
+		return json.dumps(self.__dict__, indent=4, cls=CustomEncoder)
+
+
+	def export(self):
+
+		exportFile = os.sep.join([resultsPath, "results.json"])
+
+		with open(exportFile, "w", encoding="utf-8") as file:
+			file.write(str(self))
 
 
 ### MAIN --------------------------------------------------------------------------------------------------------------------------------------------
@@ -910,7 +752,7 @@ def displayStats():
 
 			lines += ["    ■ {}\t  {}\t| {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
 
-			clear()
+			#clear()
 			print("\n".join(lines))
 			time.sleep(0.1)
 
@@ -1048,6 +890,7 @@ def main(argv):
 	display.join()
 
 	print(target)
+	target.export()
 	create_pdf(target, resultsPath, identity)
 
 
