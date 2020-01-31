@@ -233,6 +233,9 @@ def create_pdf(person, resultsPath, identity):
 					newImage(os.sep.join([account.avatar.path, account.avatar.name]), 50, x=pdf.get_x()+10, y=100)
 				if account.description != None:
 					newValue(indentation=7, description="Biography:\n{}", values=account.description)
+				
+				if (account.avatar != None) or (account.description != None):
+					newLine(10)
 				newLine(5)
 
 				if len(account.photos) > 0:
@@ -273,7 +276,7 @@ def create_pdf(person, resultsPath, identity):
 					newValue(indentation=5, description="Private account")
 
 				else:
-					newLine(3)
+					newLine(5)
 					if account.tweetsChart != None:
 						newImage(os.sep.join([account.tweetsChart.path, account.tweetsChart.name]), 180)
 						newLine(10)
@@ -288,7 +291,7 @@ def create_pdf(person, resultsPath, identity):
 						newLine(10)
 						pdf.add_page()
 					if account.hoursChart != None:
-						newImage(os.sep.join([account.hoursChart.path, account.hoursChart.name]), 180)
+						newImage(os.sep.join([account.hoursChart.path, account.hoursChart.name]), 180, x=10)
 						newLine(20)
 					if account.wordcloud != None:
 						pdf.add_page()

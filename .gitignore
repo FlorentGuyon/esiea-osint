@@ -1,2 +1,7 @@
 __pycache__
 *.csv
+*.log
+*.db
+*.db-*
+results/*
+modules/spiderfoot/cache

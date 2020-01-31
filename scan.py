@@ -443,69 +443,86 @@ class TwitterAccount(Account):
 				likes_count.insert(0, data[key]["likes_count"])
 
 			try:
-
 				self.tweetsChart = Photo(name="tweets.png", path=twitterResultsPath)
 
 				maxValue = max(tweets_count)
+				chartPath = os.sep.join([self.tweetsChart.path, self.tweetsChart.name])
 
 				chart = pygooglechart.SimpleLineChart(600, 150, "Tweets", y_range=(0, maxValue))
 				chart.set_colours(['3F51B5'])
 				chart.add_data(tweets_count)
 				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
-				chart.download(os.sep.join([self.tweetsChart.path, self.tweetsChart.name]))
+				chart.download(chartPath)
 
+			except:
+				self.tweetsChart = None
 
+			try:
 				self.repliesChart = Photo(name="replies.png", path=twitterResultsPath)
 
 				maxValue = max(replies_count)
+				chartPath = os.sep.join([self.repliesChart.path, self.repliesChart.name])
 
 				chart = pygooglechart.SimpleLineChart(600, 150, "Replies", y_range=(0, maxValue))
 				chart.set_colours(['2196F3'])
 				chart.add_data(replies_count)
 				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
-				chart.download(os.sep.join([self.repliesChart.path, self.repliesChart.name]))
+				chart.download(chartPath)
 
+			except:
+				self.repliesChart = None
 
+			try:
 				self.retweetsChart = Photo(name="retweets.png", path=twitterResultsPath)
 
 				maxValue = max(retweets_count)
+				chartPath = os.sep.join([self.retweetsChart.path, self.retweetsChart.name])
 
 				chart = pygooglechart.SimpleLineChart(600, 150, "Retweets", y_range=(0, maxValue))
 				chart.set_colours(['00BCD4'])
 				chart.add_data(retweets_count)
 				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
-				chart.download(os.sep.join([self.retweetsChart.path, self.retweetsChart.name]))
+				chart.download(chartPath)
 
+			except:
+				self.retweetsChart = None
 
+			try:
 				self.likesChart = Photo(name="likes.png", path=twitterResultsPath)
 
 				maxValue = max(likes_count)
+				chartPath = os.sep.join([self.likesChart.path, self.likesChart.name])
 
 				chart = pygooglechart.SimpleLineChart(600, 150, "Likes", y_range=(0, maxValue))
 				chart.set_colours(['009688'])
 				chart.add_data(likes_count)
 				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
-				chart.download(os.sep.join([self.likesChart.path, self.likesChart.name]))
+				chart.download(chartPath)
+			
+			except:
+				self.likesChart = None
 
-
+			try:
 				self.hoursChart = Photo(name="hours.png", path=twitterResultsPath)
 
 				maxValue = max(hours)
+				chartPath = os.sep.join([self.hoursChart.path, self.hoursChart.name])
 
 				chart = pygooglechart.GroupedVerticalBarChart(600, 200, "Posting hours", y_range=(0, maxValue))
 				chart.set_bar_width(15)
 				chart.set_colours(['F57C00'])
 				chart.add_data(hours)
 				chart.set_axis_labels(pygooglechart.Axis.BOTTOM, ["00h", "01h", "02h", "03h", "04h", "05h", "06h", "07h", "08h", "09h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h", "21h", "22h", "23h"])
-				chart.download(os.sep.join([self.hoursChart.path, self.hoursChart.name]))
+				chart.download(chartPath)
 
-
-				self.wordcloud = Photo(name="wordcloud.png", path=twitterResultsPath)
-
-				subprocess.run(["wordcloud_cli", "--text", wordsPath, "--imagefile", os.sep.join([self.wordcloud.path, self.wordcloud.name]), "--contour_color", "white", "--width", "600", "--height", "900", "--background", "white"])
-			
 			except:
-				print("Sometimes the \"pygooglechart\" library can be unstable, please restart the program.")
+				self.hoursChart = None
+
+			if filteredWords != "":
+				self.wordcloud = Photo(name="wordcloud.png", path=twitterResultsPath)
+				chartPath = os.sep.join([self.wordcloud.path, self.wordcloud.name])
+
+				result = subprocess.run(["wordcloud_cli", "--text", wordsPath, "--imagefile", chartPath, "--contour_color", "white", "--width", "600", "--height", "900", "--background", "white"])
 
 
 	def __repr__(self):
@@ -864,7 +881,7 @@ def displayStats():
 
 			lines += ["    ■ {}\t  {}\t| {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
 
-			clear()
+			#clear()
 			print("\n".join(lines))
 			time.sleep(0.1)
 
