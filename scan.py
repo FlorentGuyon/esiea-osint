@@ -752,7 +752,7 @@ def displayStats():
 
 			lines += ["    ■ {}\t  {}\t| {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
 
-			#clear()
+			clear()
 			print("\n".join(lines))
 			time.sleep(0.1)
 

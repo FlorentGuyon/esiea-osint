@@ -14,30 +14,32 @@ if sys.version_info[0] < 3:
 from libs.functions import clear
 
 # Ask for the path to python 2
-python2 = None
+#python2 = None
 
-while python2 == None:
+#while python2 == None:
 	
-	python2 = input("\n Write the alias (py -2, python2...) or the absolute path to python2: ")
+#	python2 = input("\n Write the alias (py -2, python2...) or the absolute path to python2: ")
 	
-	try:
-		returnCode = subprocess.call(" ".join([python2, "--version"]))
+#	try:
+#		returnCode = subprocess.call(" ".join([python2, "--version"]))
 
-	except:
-		print("The alias or absolute path \"{}\" is invalid".format(python2))
-		python2 = None
+#	except:
+#		print("The alias or absolute path \"{}\" is invalid".format(python2))
+#		python2 = None
 
 clear()
 
 # List of modules using python 2
-python2Modules = ["spiderfoot"]
+#python2Modules = ["spiderfoot"]
+
+suspendedModules = ["spiderfoot"]
 
 ### MAIN --------------------------------------------------------------------------------------------------------------------------------------------
 
 # Absolut path to the modules directory
 modulesPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "modules"])
 # List of modules
-modulesList = os.listdir(modulesPath)
+modulesList = list(filter(lambda module: module not in suspendedModules, os.listdir(modulesPath)))
 # Set the index of the pip module
 pipIndex = modulesList.index("pip")
 # Place pip in first place to upgrade its tools
@@ -73,7 +75,7 @@ if len(modulesList) > 0:
 				# For each package in the list
 				for package in packages:
 					# Set the command
-					command = (sys.executable if module not in python2Modules else python2) + " -m pip install --upgrade " + package
+					command = "{} -m pip install --upgrade {}".format(sys.executable, package) #(sys.executable if module not in python2Modules else python2) + " -m pip install --upgrade " + package
 					# Check for linux systems
 					if platform.system() == "Linux":
 						# Add a sudo argument
@@ -98,19 +100,19 @@ if len(modulesList) > 0:
 		
 		# If no requirements file found
 		else:
-			print("\nNo requirements found for the {} module".format(module))
+			print("No requirements found for the {} module".format(module))
 
 # If no modules fond
 else:
 	print("No modules found at {}.".format(modulesPath))
 
 # Set the path to the spiderfoot module server
-spiderfootServerPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "modules", "spiderfoot", "sf.py"])
+#spiderfootServerPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "modules", "spiderfoot", "sf.py"])
 # Start the spiderfoot module server
-spiderfootServer = subprocess.Popen(python2.split(" ") + [spiderfootServerPath], stdout=open(os.devnull, "wb"), stderr=open(os.devnull, "wb"))
+#spiderfootServer = subprocess.Popen(python2.split(" ") + [spiderfootServerPath], stdout=open(os.devnull, "wb"), stderr=open(os.devnull, "wb"))
 #fatalError("Impossible to start the spiderfoot server. Make sure that there is no other instance of sf.py running and that no other program use the port number 5001.")
-input("\n Servers are on. Keep this process open until you finished all your scans. Then press 'Enter'\n")
+#input("\n Servers are on. Keep this process open until you finished all your scans. Then press 'Enter'\n")
 # Close the spiderfoot module server
-spiderfootServer.terminate()
+#spiderfootServer.terminate()
 # Display end message
-print(" Servers are off. You can quit this process.")
+#print(" Servers are off. You can quit this process.")
