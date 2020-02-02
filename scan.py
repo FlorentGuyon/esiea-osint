@@ -81,9 +81,12 @@ class Photo:
 	name = None
 	date = None
 	location = None
+	protocol = None
 	path = None
 	contents = []
 	isDownloaded = None
+	width = None
+	height = None
 
 
 	def __init__(self, **kwargs):
@@ -95,6 +98,9 @@ class Photo:
 		self.path = None
 		self.contents = []
 		self.isDownloaded = False
+		self.width = None
+		self.height = None
+		self.protocol = None
 
 		for key, value in kwargs.items():
 			if key == "url":
@@ -108,7 +114,19 @@ class Photo:
 			elif key == "path":
 				self.path = value
 			elif key == "contents":
-				self.contents = value
+				if value != None:
+					if value is not list:
+						value = [value]
+					self.contents = value
+			elif key == "width":
+				self.width = value
+			elif key == "height":
+				self.height = value
+			elif key == "protocol":
+				self.protocol = value
+
+		if (self.protocol == None) and (self.url != None):
+			self.protocol = self.url.split("?")[0].split(".").pop().lower()
 
 		if self.date == None:
 			self.date = datetime.datetime.now()
@@ -119,46 +137,60 @@ class Photo:
 
 	def download(self):
 
-		download(url = self.url, path = os.sep.join([self.path, self.name]), verbose=False, progressbar=False)
+		if not isFile(os.sep.join([self.path, self.name])):
 
-		if isFile(os.sep.join([self.path, self.name])):
+			if doesThisURLExist(self.url):
+				try:
+					download(url = self.url, path = os.sep.join([self.path, self.name]), verbose=False, progressbar=False)
+				except:
+					pass
+
+				if isFile(os.sep.join([self.path, self.name])):
+					self.isDownloaded = True
+		else:
 			self.isDownloaded = True
 
 
-class Account:
+	def __repr__(self):
+
+		return json.dumps(self.__dict__, indent=4, cls=CustomEncoder)
+
+
+class Website:
 
 	serviceName = None
 	serviceCategory = None
-	profileLink = None
+	url = None
 	qrcode = None
 	username = None
+	images = []
+	imagesPath = None
 
-	def __init__(self, serviceName, serviceCategory = None, profileLink = None, username = None):
+	def __init__(self, serviceName, serviceCategory = None, url = None, username = None, defaultExtraction = True):
 
 		self.serviceName = serviceName
 		self.serviceCategory = serviceCategory
-		self.profileLink = profileLink
+		self.url = url
 		self.username = username
 		self.qrcode = None
+		self.images = []
+		self.imagesPath = os.sep.join([resultsPath, serviceName])
 
-		if profileLink != None:
+		if username != None:
+			self.imagesPath = os.sep.join([self.imagesPath, username])
+
+		if url != None:
 			while self.qrcode == None:
 
-				qrPath = os.sep.join([resultsPath, serviceName])  
+				qrSideSize = 75
 
-				if username != None:
-					qrPath = os.sep.join([qrPath, username])
-				else:
-					print(serviceName)
-					break
-
-				self.qrcode = Photo(name="qrcode.png", path=qrPath)
+				self.qrcode = Photo(name="qrcode.png", path=self.imagesPath, width=qrSideSize, height=qrSideSize)
 
 				if not os.path.exists(self.qrcode.path):
 					os.makedirs(self.qrcode.path)
 
-				chart = pygooglechart.QRChart(75, 75)
-				chart.add_data(self.profileLink)
+				chart = pygooglechart.QRChart(qrSideSize, qrSideSize)
+				chart.add_data(self.url)
 				chart.set_ec('H', 0)
 
 				self.qrcode.isDownloaded = True
@@ -170,7 +202,35 @@ class Account:
 					self.qrcode.isDownloaded = False
 
 
-class InstagramAccount(Account):
+			if defaultExtraction:
+				threading.Thread(name="Website", target=self.extractData).start()
+
+
+	def extractData(self):
+
+		page = requests.get(self.url).content.decode('utf-8')
+
+		# Parse the content as lxml
+		soup = bs(page, 'lxml')
+
+		images = soup.select("img")
+
+		for index, image in enumerate(images):
+			if image.has_attr("src"):
+				
+				imageUrl = image["src"].split("?")[0]
+
+				if imageUrl[:4] != "http":
+					imageUrl = self.url + imageUrl
+				
+				imageType = imageUrl.split(".").pop()
+				imageName = "{}_{}.{}".format(self.username, index, imageType)
+				imageContents = image["alt"] if (image.has_attr("alt")) and (image["alt"] != "") else None
+				
+				self.images.append(Photo(url=imageUrl, name=imageName, path=self.imagesPath, contents=imageContents))
+
+
+class Instagram(Website):
 
 	name = None
 	userId = None
@@ -186,12 +246,12 @@ class InstagramAccount(Account):
 	photos = []
 
 
-	def __init__(self, username = None, profileLink = None):
+	def __init__(self, username = None, url = None):
 
-		if (username != None) & (profileLink == None):
-			profileLink = "https://www.instagram.com/" + username
+		if (username != None) & (url == None):
+			url = "https://www.instagram.com/" + username
 
-		Account.__init__(self, serviceName = "Instagram", serviceCategory = "social", profileLink = profileLink, username = username)
+		Website.__init__(self, serviceName = "Instagram", serviceCategory = "social", url = url, username = username, defaultExtraction = False)
 
 		self.name = None
 		self.userId = None
@@ -206,11 +266,11 @@ class InstagramAccount(Account):
 		self.phone = None
 		self.photos = []
 
-		threading.Thread(name="Account", target=self.extractData).start()
+		threading.Thread(name="Website", target=self.extractData).start()
 
 	def extractData(self):
 
-		data = extractInstagram(self.profileLink)
+		data = extractInstagram(self.url)
 
 		if data["username"] == None:
 			return
@@ -248,12 +308,12 @@ class InstagramAccount(Account):
 			date = photo["date"]
 			location = photo["loc"]
 			name = photo["name"]
-			contents = photo["view"].split(", ")
+			contents = photo["view"] if photo["view"] != "" else None
 
-			self.photos.append(Photo(url=url, date=date, location=location, path=photosPath, name=name, contents=contents))		
+			self.photos.append(Photo(url=url, date=date, location=location, path=photosPath, name=name, contents=contents, protocol="jpg"))		
 
 
-class TwitterAccount(Account):
+class Twitter(Website):
 
 	userId = None
 	isPrivate = None
@@ -268,9 +328,9 @@ class TwitterAccount(Account):
 
 	def __init__(self, username):
 
-		profileLink = "https://www.twitter.com/" + username
+		url = "https://www.twitter.com/" + username
 
-		Account.__init__(self, serviceName = "Twitter", serviceCategory = "social", profileLink = profileLink, username = username)
+		Website.__init__(self, serviceName = "Twitter", serviceCategory = "social", url = url, username = username, defaultExtraction = False)
 
 		twintPath = os.sep.join([resultsPath, "twitter", self.username])
 
@@ -287,7 +347,7 @@ class TwitterAccount(Account):
 		self.hoursChart = None
 		self.wordcloud = None
 
-		threading.Thread(name="Account", target=self.extractData).start()
+		threading.Thread(name="Website", target=self.extractData).start()
 
 
 	def extractData(self):
@@ -380,13 +440,13 @@ class TwitterAccount(Account):
 			chart.add_data(tweets_count)
 			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 
-			if isFile(chartPath):
-				self.tweetsChart.isDownloaded = True
-
 			try:
 				chart.download(chartPath)
 			except:
 				pass
+
+			if isFile(chartPath):
+				self.tweetsChart.isDownloaded = True
 
 
 			self.repliesChart = Photo(name="replies.png", path=twitterResultsPath)
@@ -502,6 +562,89 @@ class Hash:
 		return json.dumps(self.__dict__, indent=4, separators=(',', ': '), cls=CustomEncoder)
 
 
+class Wikipedia(Website):
+
+	images = []
+	text = None
+
+
+	def __init__(self, username):
+
+		self.images = []
+		self.text = None
+
+		url = "https://fr.wikipedia.org/wiki/{}".format(username)
+
+		Website.__init__(self, serviceName = "Wikipedia", serviceCategory = "culture", url = url, username = username, defaultExtraction = False)
+
+		page = requests.get(url).content.decode('utf-8')
+
+		# Parse the content as lxml
+		soup = bs(page, 'lxml')
+
+		# Remove all the unwanted texts (example: Edit button)
+		tagsToRemove = soup.select(".mw-editsection, .toc, .reference, .need_ref_tag, .mw-cite-backlink, .bandeau-niveau-detail, .bandeau-portail, small, sup, style, .API.nowrap")
+
+		# For all the found tags
+		for tag in tagsToRemove:
+			# Delete it
+			tag.decompose()
+
+		# Select only the interesting part
+		paragraphs = soup.select("p")
+		paragraphs[-1].decompose()
+
+		if len(paragraphs) != 0:
+
+			self.text = ""
+
+			for paragraph in paragraphs:
+
+				# If it is a comment, ignore it
+				if type(paragraph).__name__ == "Comment":
+					continue
+
+				# If it is a string
+				if type(paragraph).__name__ == "NavigableString":
+					# Remove an invisible char and print it
+					self.text += paragraph.replace("‎", "")
+
+				# Else if it is an object
+				else:
+					# Remove an invisible char and print the object text
+					self.text += paragraph.text.replace("‎", "")
+
+
+		imagePath = os.sep.join([resultsPath, self.serviceName, self.username])
+
+		if not os.path.exists(imagePath):
+			os.makedirs(imagePath)
+
+		images = soup.select("img")
+		filteredImages = list(filter(lambda image: image["src"].find(username) != -1, images))
+		
+		for index, image in enumerate(filteredImages):
+			
+			imageType = image["src"].split(".").pop()
+			imageName = "{}_{}.{}".format(self.username, index, imageType)
+			imageURL = "https:{}".format(image["src"])
+			
+			imageContents = None
+			imageWidth = None
+			imageHeight = None
+			
+			if image["alt"] != "":
+				imageContents = image["alt"]
+
+			if image["width"] != None:
+				imageWidth = int(image["width"])
+
+			if image["height"] != None:
+				imageHeight = int(image["height"])
+			
+			self.images.append(Photo(name = imageName, url = imageURL, path = imagePath, contents = imageContents, width = imageWidth, height = imageHeight))
+
+
 class Email:
 
 	address = None
@@ -561,7 +704,7 @@ class Person:
 	lastname = None
 	usernames = []
 	emails = []
-	accounts = []
+	website = []
 	phoneNumbers = []
 
 	def addPhoneNumbers(self, newPhoneNumbers):
@@ -592,16 +735,16 @@ class Person:
 				threading.Thread(name="Username", target=self.scanUsername, kwargs={"username": username}).start()
 
 
-	def addAccount(self, account):
+	def addWebsite(self, website):
 
-		if account.__class__.__name__ not in ("Account", "InstagramAccount", "TwitterAccount"):
-			wrongAttrType(self, "account", Account, account)
+		if website.__class__.__name__ not in ("Website", "Instagram", "Twitter", "Wikipedia"):
+			wrongAttrType(self, "website", Website, website)
 
-		elif account.__class__.__name__ == "Account":
-			self.accounts.append(account)
+		elif website.__class__.__name__ == "Website":
+			self.websites.append(website)
 
 		else:
-			self.accounts.insert(0, account)
+			self.websites.insert(0, website)
 
 
 	# Scan the name with spiderfoot
@@ -617,7 +760,7 @@ class Person:
 			# If the result is an account
 			if result["event_type"] == "ACCOUNT_EXTERNAL_OWNED":
 				# Formate results
-				result["data"] = result["data"].replace("\n", " ").replace(")", "").split(" ")
+				result["data"] = result["data"].replace("\n", "e ").replace(")", "").split(" ")
 				# Delete the useless 'category' keywork
 				del(result["data"][1])
 				# Get the name of the service
@@ -625,22 +768,22 @@ class Person:
 				# Get the name of the service
 				serviceCategory = result["data"][1]
 				# Get the path to the profile
-				profileLink = result["data"][2]
+				url = result["data"][2]
 
-				if profileLink[-1] == "/":
-					profileLink = profileLink[0:-1]
+				if url[-1] == "/":
+					url = url[0:-1]
 
-				username = profileLink.split("/").pop()
+				username = url.split("/").pop()
 
-				if (profileLink not in [account.profileLink for account in self.accounts]) and (doesThisURLExist(profileLink)):
+				if (url not in [website.url for website in self.websites]) and (doesThisURLExist(url)):
 					# If it is an Instagram account
 					if serviceName == "Instagram":
 						# Create the Instagram account
-						self.addAccount(InstagramAccount(username = username, profileLink = profileLink))
+						self.addWebsite(Instagram(username = username, url = url))
 					# If it is another account
 					else:
 						# Create the new account
-						self.addAccount(Account(username = username, serviceName = serviceName, serviceCategory = serviceCategory, profileLink = profileLink))
+						self.addWebsite(Website(username = username, serviceName = serviceName, serviceCategory = serviceCategory, url = url))
 			
 			# Else if the result is a username
 			elif result["event_type"] == "USERNAME":
@@ -648,25 +791,27 @@ class Person:
 				self.addUsernames(result["data"])
 
 
-	def verifyAccount(self, **kwargs):
+	def verifyWebsite(self, **kwargs):
 
-		if doesThisURLExist(kwargs["account"]["link"]):
-			if kwargs["account"]["name"] == "Instagram":
-				self.addAccount(InstagramAccount(username = kwargs["account"]["username"]))
-			elif kwargs["account"]["name"] == "Twitter":
-				self.addAccount(TwitterAccount(username = kwargs["account"]["username"]))
+		if doesThisURLExist(kwargs["website"]["link"]):
+			if kwargs["website"]["name"] == "Instagram":
+				self.addWebsite(Instagram(username = kwargs["website"]["username"]))
+			elif kwargs["website"]["name"] == "Twitter":
+				self.addWebsite(Twitter(username = kwargs["website"]["username"]))
+			elif kwargs["website"]["name"] == "Wikipedia":
+				self.addWebsite(Wikipedia(username = kwargs["website"]["username"]))
 			else:
-				self.addAccount(Account(serviceName = kwargs["account"]["name"], profileLink = kwargs["account"]["link"], username = kwargs["account"]["username"]))
+				self.addWebsite(Website(serviceName = kwargs["website"]["name"], url = kwargs["website"]["link"], username = kwargs["website"]["username"]))
 
 
 	def scanUsername(self, **kwargs):
 
-		accounts = fromUsernameToAccounts(kwargs["username"])
+		websites = fromUsernameToWebsites(kwargs["username"])
 
-		for account in accounts:
-			account["username"] = kwargs["username"]
-			if account["link"] not in [account.profileLink for account in self.accounts]:
-				threading.Thread(name="URL", target=self.verifyAccount, kwargs={"account": account}).start()
+		for website in websites:
+			website["username"] = kwargs["username"]
+			if website["link"] not in [website.url for website in self.websites]:
+				threading.Thread(name="URL", target=self.verifyWebsite, kwargs={"website": website}).start()
 
 
 	def __init__(self, **kwargs):
@@ -675,7 +820,7 @@ class Person:
 		self.lastname = None
 		self.middlenames = []
 		self.usernames = []
-		self.accounts = []
+		self.websites = []
 		self.emails = []
 		self.phoneNumbers = []
 
@@ -701,6 +846,18 @@ class Person:
 
 		if self.firstname != None and self.lastname != None:
 
+			wikipediaFirstname = self.firstname.title().replace(" ", "-")
+			wikipediaLastname = self.lastname.title().replace(" ", "-")
+			wikipediaUsername = "{}_{}".format(wikipediaFirstname, wikipediaLastname)
+
+			website = {
+				"link" : "https://fr.wikipedia.org/wiki/{}".format(wikipediaUsername),
+				"name" : "Wikipedia",
+				"username" : wikipediaUsername
+			}
+
+			threading.Thread(name="URL", target=self.verifyWebsite, kwargs={"website": website}).start()
+
 			compactFirstname = self.firstname.lower().replace(" ", "")
 			compactLastname = self.lastname.lower().replace(" ", "")
 
@@ -708,6 +865,7 @@ class Person:
 				"{}{}".format(compactFirstname, compactLastname),
 				"{}{}".format(compactLastname, compactFirstname),
 			])
+
 			# Spiderfoot is very slow and the results are almost all wrong
 			#threading.Thread(name="Person", target=self.scanName).start()
 
@@ -727,7 +885,7 @@ class Person:
 ### MAIN --------------------------------------------------------------------------------------------------------------------------------------------
 
 stop = False
-threadTypes = ["Person", "Email", "Hash", "Phone", "Account", "Photo", "Username", "URL"]
+threadTypes = ["Person", "Email", "Hash", "Phone", "Website", "Photo", "Username", "URL"]
 
 def displayStats():
 
@@ -889,7 +1047,6 @@ def main(argv):
 
 	display.join()
 
-	print(target)
 	target.export()
 	create_pdf(target, resultsPath, identity)
 

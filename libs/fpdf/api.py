@@ -73,7 +73,7 @@ def newLink(link, indentation=0, align="L"):
 	pdf.set_font(fontFamily, size=fontSize["normal"])
 
 
-def newValue(indentation=0, description="{}", values=[], align="L"):
+def newValue(indentation=0, description="{}", values=[], align="L", fontSize=fontSize["normal"]):
 
 	if type(values) != list:
 		values=[values]
@@ -88,7 +88,7 @@ def newValue(indentation=0, description="{}", values=[], align="L"):
 	if indentation != 0:
 		pdf.cell(indentationWidth * indentation)
 	
-	pdf.set_font(fontFamily, size=fontSize["normal"])
+	pdf.set_font(fontFamily, size=fontSize)
 	pdf.multi_cell(0, 5, txt=description, align=align)
 
 
@@ -97,15 +97,69 @@ def newLine(number = 1):
 	pdf.ln(lineHeight * number)
 
 
-def newImage(path, size, x=None, y=None, link=None):
+def newImage(path, size=30, protocol=None, x=None, y=None, link=None):
+
+	if protocol == None:
+		protocol = path.split(".").pop().lower()
+
+	allowedImageTypes = ["png", "jpg", "jpeg", "gif"]
+
+	if protocol not in allowedImageTypes:
+		path = os.sep.join([filePath, "images", "invalid_image.png"])
+		protocol = "png"
 
 	if x == None:
 		x = pdf.get_x()
 
 	if y == None:
-		y = pdf.get_y()
+		y = pdf.get_y()	
 
-	pdf.image(path, x, y, size, link=link)
+	try:
+		pdf.image(path, x, y, size, link=link, type=protocol)
+	except:
+		path = os.sep.join([filePath, "images", "invalid_image.png"])
+		protocol = "png"
+		pdf.image(path, x, y, size, link=link, type=protocol)
+
+
+def newGallery(images = [], imageSize = 50, spaceBetweenImages = 75, identationBetweenDescriptions = 6, imagesByLine = 3, LineByPage = 3):
+
+	imagesOnPage = 0
+	imagesOnLine = 0
+	imagesByPage = imagesByLine * LineByPage
+
+	for image in images:
+
+		if image.isDownloaded:
+
+			if (image.contents != None) and (len(image.contents) != 0):
+				
+				identation = imagesOnLine * identationBetweenDescriptions
+				
+				if image.contents != None:
+					imageContents = ", ".join(image.contents)
+				
+				newValue(indentation = identation, values=imageContents, fontSize=fontSize["tiny"])
+
+			x = None 
+
+			if imagesOnLine != 0:
+				x = imagesOnLine * spaceBetweenImages
+			
+			imagePath = os.sep.join([image.path, image.name])
+			
+			newImage(imagePath, imageSize, protocol=image.protocol, x=x, y=pdf.get_y() + 1, link=image.url)
+
+			imagesOnLine += 1
+			imagesOnPage += 1
+
+			if imagesOnLine == imagesByLine:
+				newLine(15)	
+				imagesOnLine = 0
+
+			if imagesOnPage == imagesByPage:
+				pdf.add_page()
+				imagesOnPage = 0
 
 
 class CustomPDF(FPDF):
@@ -205,102 +259,87 @@ def create_pdf(person, resultsPath, identity):
 
 	# Accounts
 
-	if len(person.accounts) > 0:
+	if len(person.websites) > 0:
 
-		for account in person.accounts:
+		for website in person.websites:
 
-			category = " (" + account.serviceCategory + ")" if (account.serviceCategory != None) else ""
-			newSection(account.serviceName + category)
-			newLink(account.profileLink, align="R")
+			category = " (" + website.serviceCategory + ")" if (website.serviceCategory != None) else ""
+			newSection(website.serviceName + category)
+			newLink(website.url, align="R")
 			newLine()
 
-			if (account.qrcode != None) and (account.qrcode.isDownloaded):
-				newImage(os.sep.join([account.qrcode.path, account.qrcode.name]), 30, x=20, y=pdf.get_y(), link = account.profileLink)
+			if (website.qrcode != None) and (website.qrcode.isDownloaded):
+				newImage(os.sep.join([website.qrcode.path, website.qrcode.name]), 30, x=20, y=pdf.get_y(), link = website.url, protocol=website.qrcode.protocol)
 				newLine()
 
-			if account.__class__.__name__ == "InstagramAccount":
+			if website.__class__.__name__ == "Instagram":
 
-				newValue(indentation=5, description="{} ({}, ID: {})", values=[account.username, "Private account" if account.isPrivate else "Public account", account.userId])
-				if account.name != None:
-					newValue(indentation=5, description="Real name: {}", values=account.name)
-				if account.email != None:
-					newValue(indentation=5, description="Email: {}", values=account.email)
-				if account.address != None:
-					newValue(indentation=5, description="Address: {}", values=account.address)
-				if account.phone != None:
-					newValue(indentation=5, description="Phone number: {}", values=account.phone)
-				newValue(indentation=5, description="Followers: {}    Followings: {}    Posts: {}", values=[account.followersCount, account.friendsCount, account.postsCount])
+				newValue(indentation=5, description="{} ({}, ID: {})", values=[website.username, "Private account" if website.isPrivate else "Public account", website.userId])
+				if website.name != None:
+					newValue(indentation=5, description="Real name: {}", values=website.name)
+				if website.email != None:
+					newValue(indentation=5, description="Email: {}", values=website.email)
+				if website.address != None:
+					newValue(indentation=5, description="Address: {}", values=website.address)
+				if website.phone != None:
+					newValue(indentation=5, description="Phone number: {}", values=website.phone)
+				newValue(indentation=5, description="Followers: {}    Followings: {}    Posts: {}", values=[website.followersCount, website.friendsCount, website.postsCount])
 				newLine()
-				if (account.avatar != None) and (account.avatar.isDownloaded):
-					newImage(os.sep.join([account.avatar.path, account.avatar.name]), 50, x=pdf.get_x()+10, y=100)
-				if account.description != None:
-					newValue(indentation=7, description="Biography:\n{}", values=account.description)
+				if (website.avatar != None) and (website.avatar.isDownloaded):
+					newImage(os.sep.join([website.avatar.path, website.avatar.name]), 50, x=pdf.get_x()+10, y=100, protocol=website.avatar.protocol, link=website.avatar.url)
+				if website.description != None:
+					newValue(indentation=7, description="Biography:\n{}", values=website.description)
 				
-				if (account.avatar != None) or (account.description != None):
+				if (website.avatar != None) or (website.description != None):
 					newLine(10)
-				newLine(5)
+				
+				pdf.add_page()
+				newGallery(website.photos)
 
-				if len(account.photos) > 0:
 
-					imagesByLine = 4
-					imageMargin = 5
-					imageSize = (areaWidth / imagesByLine) - (imageMargin * 2)
+			elif website.__class__.__name__ == "Twitter":
 
-					for photo in account.photos:
+				userId = " (ID:" + website.userId + ")" if (website.userId != None) else ""
+				newValue(indentation=5, description="{}{}", values=[website.username, userId])
 
-						if photo.isDownloaded:
-							if pdf.get_x() + imageSize > 200:
-
-								newLine((imageSize * 1.5) / lineHeight)
-								pdf.set_x(leftMargin)
-
-							if pdf.get_y() + (imageSize *2) > areaHeight: 
-
-								pdf.add_page()
-
-							pdf.set_x(pdf.get_x() + imageMargin)
-
-							newImage(os.sep.join([photo.path, photo.name]), imageSize)
-							
-							pdf.set_x(pdf.get_x() + imageSize + imageMargin)
-
-							newLine((imageSize * 1.5) / lineHeight)
-
-				else:
-					newLine(3)
-
-			elif account.__class__.__name__ == "TwitterAccount":
-
-				userId = " (ID:" + account.userId + ")" if (account.userId != None) else ""
-				newValue(indentation=5, description="{}{}", values=[account.username, userId])
-
-				if account.isPrivate:
+				if website.isPrivate:
 					newValue(indentation=5, description="Private account")
 
 				else:
 					newLine(5)
-					if account.tweetsChart.isDownloaded:
-						newImage(os.sep.join([account.tweetsChart.path, account.tweetsChart.name]), 180)
+					if website.tweetsChart.isDownloaded:
+						newImage(os.sep.join([website.tweetsChart.path, website.tweetsChart.name]), 180, protocol=website.tweetsChart.protocol)
 						newLine(10)
-					if account.repliesChart.isDownloaded:
-						newImage(os.sep.join([account.repliesChart.path, account.repliesChart.name]), 180)
+					if website.repliesChart.isDownloaded:
+						newImage(os.sep.join([website.repliesChart.path, website.repliesChart.name]), 180, protocol=website.repliesChart.protocol)
 						newLine(10)
-					if account.retweetsChart.isDownloaded:
-						newImage(os.sep.join([account.retweetsChart.path, account.retweetsChart.name]), 180)
+					if website.retweetsChart.isDownloaded:
+						newImage(os.sep.join([website.retweetsChart.path, website.retweetsChart.name]), 180, protocol=website.retweetsChart.protocol)
 						newLine(10)
-					if account.likesChart.isDownloaded:
-						newImage(os.sep.join([account.likesChart.path, account.likesChart.name]), 180)
+					if website.likesChart.isDownloaded:
+						newImage(os.sep.join([website.likesChart.path, website.likesChart.name]), 180, protocol=website.likesChart.protocol)
 						newLine(10)
 						pdf.add_page()
-					if account.hoursChart.isDownloaded:
-						newImage(os.sep.join([account.hoursChart.path, account.hoursChart.name]), 180, x=10)
+					if website.hoursChart.isDownloaded:
+						newImage(os.sep.join([website.hoursChart.path, website.hoursChart.name]), 180, x=10, protocol=website.hoursChart.protocol)
 						newLine(20)
-					if account.wordcloud.isDownloaded:
+					if website.wordcloud.isDownloaded:
 						pdf.add_page()
-						newImage(os.sep.join([account.wordcloud.path, account.wordcloud.name]), 150, x=30, y=pdf.get_x() + 30)
-			
+						newImage(os.sep.join([website.wordcloud.path, website.wordcloud.name]), 150, x=30, y=pdf.get_x() + 30, protocol=website.wordcloud.protocol)
+
+			elif website.__class__.__name__ == "Wikipedia":
+
+				newLine(5)
+				newValue(indentation=0, values=website.text)
+				pdf.add_page()
+				
+				newGallery(website.images)
+
+
 			else:
-				newValue(indentation=5, description="Data extraction from this website is not yet automated.")
+				newValue(indentation=5, description="Data extraction from this website is not yet fully automated.")
+				newLine(5)
+				newGallery(website.images)
 
 
 	# Export

@@ -193,7 +193,7 @@ def doesThisURLExist(url):
 	return doesThisURLExist
 
 
-def fromUsernameToAccounts(username):
+def fromUsernameToWebsites(username):
 	
 	browser = wd.Firefox(executable_path = GeckoDriverManager().install())
 
@@ -215,13 +215,13 @@ def fromUsernameToAccounts(username):
 	# Parse the content as lxml
 	parsedHTML = bs(HTML, 'lxml')
 
-	existingAccounts = parsedHTML.select("section.app-body .box.unavailable")
+	existingWebsites = parsedHTML.select("section.app-body .box.unavailable")
 
-	accountList = []
+	websites = []
 	# This websites return a 200 stauts code even when the username is invalid
-	blackListedWebsites = ["Imgur", "ProductHunt", "Tripit", "Kik", "Hackernews", "Younow", "Mixcloud", "Ask FM", "Paypal"]
+	blackListedWebsites = ["Imgur", "ProductHunt", "Tripit", "Kik", "Hackernews", "Younow", "Mixcloud", "Ask FM", "PayPal", "Wikipedia"]
 	
-	for account in existingAccounts:
+	for account in existingWebsites:
 		
 		website = account.text
 		link = None
@@ -239,6 +239,6 @@ def fromUsernameToAccounts(username):
 		else:
 			continue
 
-		accountList.append({"name": website, "link": link})
+		websites.append({"name": website, "link": link})
 
-	return accountList
+	return websites
