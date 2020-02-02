@@ -15,16 +15,16 @@ from libs.functions import *
 from libs.fpdf.api import create_pdf
 
 # Check if the requirements are up to date and if the spiderfoot server is on
-response = input("Have you already start the setup.py program (in sudo mode) ? [Y/n] : ")
+#response = input("Have you already start the setup.py program (in sudo mode) ? [Y/n] : ")
 
 # If the setup script is not running
-if response not in ["", "y", "Y"]:
+#if response not in ["", "y", "Y"]:
 	# Quit
-	exit()
+#	exit()
 # If the setup script is already running
-else:
+#else:
 	# Clear the shell and go on
-	clear()
+#	clear()
 
 from modules.littlebrother.core.searchInstagram import extractInstagram
 from modules.littlebrother.core.leaked import leaked
@@ -83,6 +83,7 @@ class Photo:
 	location = None
 	protocol = None
 	path = None
+	fullPath = None
 	contents = []
 	isDownloaded = None
 	width = None
@@ -96,6 +97,7 @@ class Photo:
 		self.date = None
 		self.location = None
 		self.path = None
+		self.fullPath = None
 		self.contents = []
 		self.isDownloaded = False
 		self.width = None
@@ -126,7 +128,12 @@ class Photo:
 				self.protocol = value
 
 		if (self.protocol == None) and (self.url != None):
-			self.protocol = self.url.split("?")[0].split(".").pop().lower()
+			protocol = self.url.split("?")[0].split(".").pop().lower()
+			if len(protocol) <= 4:
+				self.protocol = protocol
+
+		if (self.path != None) and (self.name != None) and (self.protocol != None):
+			self.fullPath = os.sep.join([self.path, "{}.{}".format(self.name, self.protocol)])
 
 		if self.date == None:
 			self.date = datetime.datetime.now()
@@ -137,18 +144,19 @@ class Photo:
 
 	def download(self):
 
-		if not isFile(os.sep.join([self.path, self.name])):
+		if self.fullPath != None:
+			if not isFile(self.fullPath):
 
-			if doesThisURLExist(self.url):
-				try:
-					download(url = self.url, path = os.sep.join([self.path, self.name]), verbose=False, progressbar=False)
-				except:
-					pass
+				if doesThisURLExist(self.url):
+					try:
+						download(url = self.url, path = self.fullPath, verbose=False, progressbar=False)
+					except:
+						pass
 
-				if isFile(os.sep.join([self.path, self.name])):
-					self.isDownloaded = True
-		else:
-			self.isDownloaded = True
+					if isFile(self.fullPath):
+						self.isDownloaded = True
+			else:
+				self.isDownloaded = True
 
 
 	def __repr__(self):
@@ -179,12 +187,15 @@ class Website:
 		if username != None:
 			self.imagesPath = os.sep.join([self.imagesPath, username])
 
+		currentTries = 0
+		maxTries = 3
+
 		if url != None:
-			while self.qrcode == None:
 
-				qrSideSize = 75
+			qrSideSize = 75
+			self.qrcode = Photo(name="qrcode", path=self.imagesPath, width=qrSideSize, height=qrSideSize, protocol="png")
 
-				self.qrcode = Photo(name="qrcode.png", path=self.imagesPath, width=qrSideSize, height=qrSideSize)
+			while (not self.qrcode.isDownloaded) and (currentTries < maxTries):
 
 				if not os.path.exists(self.qrcode.path):
 					os.makedirs(self.qrcode.path)
@@ -193,13 +204,15 @@ class Website:
 				chart.add_data(self.url)
 				chart.set_ec('H', 0)
 
-				self.qrcode.isDownloaded = True
-
 				try:
-					chart.download(os.sep.join([self.qrcode.path, self.qrcode.name]))
+					chart.download(self.qrcode.fullPath)
 				except:
 					time.sleep(1)
-					self.qrcode.isDownloaded = False
+
+				currentTries += 1
+
+				if isFile(self.qrcode.fullPath):
+					self.qrcode.isDownloaded = True
 
 
 			if defaultExtraction:
@@ -224,10 +237,14 @@ class Website:
 					imageUrl = self.url + imageUrl
 				
 				imageType = imageUrl.split(".").pop()
-				imageName = "{}_{}.{}".format(self.username, index, imageType)
+
+				if len(imageType) > 4:
+					imageType = None
+
+				imageName = "{}_{}".format(self.username, index)
 				imageContents = image["alt"] if (image.has_attr("alt")) and (image["alt"] != "") else None
 				
-				self.images.append(Photo(url=imageUrl, name=imageName, path=self.imagesPath, contents=imageContents))
+				self.images.append(Photo(url=imageUrl, name=imageName, path=self.imagesPath, contents=imageContents, protocol=imageType))
 
 
 class Instagram(Website):
@@ -380,7 +397,7 @@ class Twitter(Website):
 
 		datetime, tweets_count, replies_count, retweets_count, likes_count = [], [], [], [], []
 		
-		twitterResultsPath = os.sep.join([resultsPath, "twitter", self.username])
+		twitterResultsPath = os.sep.join([resultsPath, "Twitter", self.username])
 		words = ""
 		data = {}
 		hours = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -430,108 +447,126 @@ class Twitter(Website):
 				likes_count.insert(0, data[key]["likes_count"])
 
 
-			self.tweetsChart = Photo(name="tweets.png", path=twitterResultsPath)
+			imageWidth = 600
+			imageHeight = 150
+
+			self.tweetsChart = Photo(name="tweets", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
 
 			maxValue = max(tweets_count)
-			chartPath = os.sep.join([self.tweetsChart.path, self.tweetsChart.name])
-
-			chart = pygooglechart.SimpleLineChart(600, 150, "Tweets", y_range=(0, maxValue))
+			
+			chart = pygooglechart.SimpleLineChart(imageWidth, imageHeight, "Tweets", y_range=(0, maxValue))
 			chart.set_colours(['3F51B5'])
 			chart.add_data(tweets_count)
 			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 
 			try:
-				chart.download(chartPath)
+				chart.download(self.tweetsChart.fullPath)
 			except:
 				pass
 
-			if isFile(chartPath):
+			if isFile(self.tweetsChart.fullPath):
 				self.tweetsChart.isDownloaded = True
 
 
-			self.repliesChart = Photo(name="replies.png", path=twitterResultsPath)
+			imageWidth = 600
+			imageHeight = 150
+
+			self.repliesChart = Photo(name="replies", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
 
 			maxValue = max(replies_count)
-			chartPath = os.sep.join([self.repliesChart.path, self.repliesChart.name])
-
-			chart = pygooglechart.SimpleLineChart(600, 150, "Replies", y_range=(0, maxValue))
+			
+			chart = pygooglechart.SimpleLineChart(imageWidth, imageHeight, "Replies", y_range=(0, maxValue))
 			chart.set_colours(['2196F3'])
 			chart.add_data(replies_count)
 			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 
 			try:
-				chart.download(chartPath)
+				chart.download(self.repliesChart.fullPath)
 			except:
 				pass
 
-			if isFile(chartPath):
+			if isFile(self.repliesChart.fullPath):
 				self.repliesChart.isDownloaded = True
 
 
-			self.retweetsChart = Photo(name="retweets.png", path=twitterResultsPath)
+			imageWidth = 600
+			imageHeight = 150
+
+			self.retweetsChart = Photo(name="retweets", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
 
 			maxValue = max(retweets_count)
-			chartPath = os.sep.join([self.retweetsChart.path, self.retweetsChart.name])
-
-			chart = pygooglechart.SimpleLineChart(600, 150, "Retweets", y_range=(0, maxValue))
+			
+			chart = pygooglechart.SimpleLineChart(imageWidth, imageHeight, "Retweets", y_range=(0, maxValue))
 			chart.set_colours(['00BCD4'])
 			chart.add_data(retweets_count)
 			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 
 			try:
-				chart.download(chartPath)
+				chart.download(self.retweetsChart.fullPath)
 			except:
 				pass
 
-			if isFile(chartPath):
+			if isFile(self.retweetsChart.fullPath):
 				self.retweetsChart.isDownloaded = True
 
 
-			self.likesChart = Photo(name="likes.png", path=twitterResultsPath)
+			imageWidth = 600
+			imageHeight = 150
+
+			self.likesChart = Photo(name="likes", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
 
 			maxValue = max(likes_count)
-			chartPath = os.sep.join([self.likesChart.path, self.likesChart.name])
-
-			chart = pygooglechart.SimpleLineChart(600, 150, "Likes", y_range=(0, maxValue))
+			
+			chart = pygooglechart.SimpleLineChart(imageWidth, imageHeight, "Likes", y_range=(0, maxValue))
 			chart.set_colours(['009688'])
 			chart.add_data(likes_count)
 			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, datetime)
 			
 			try:
-				chart.download(chartPath)
+				chart.download(self.likesChart.fullPath)
 			except:
 				pass
 
-			if isFile(chartPath):
+			if isFile(self.likesChart.fullPath):
 				self.likesChart.isDownloaded = True
 
 
-			self.hoursChart = Photo(name="hours.png", path=twitterResultsPath)
+			imageWidth = 600
+			imageHeight = 200
+
+			self.hoursChart = Photo(name="hours", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
 		
 			maxValue = max(hours)
-			chartPath = os.sep.join([self.hoursChart.path, self.hoursChart.name])
-
-			chart = pygooglechart.GroupedVerticalBarChart(600, 200, "Posting hours", y_range=(0, maxValue))
+			
+			chart = pygooglechart.GroupedVerticalBarChart(imageWidth, imageHeight, "Posting hours", y_range=(0, maxValue))
 			chart.set_bar_width(15)
 			chart.set_colours(['F57C00'])
 			chart.add_data(hours)
 			chart.set_axis_labels(pygooglechart.Axis.BOTTOM, ["00h", "01h", "02h", "03h", "04h", "05h", "06h", "07h", "08h", "09h", "10h", "11h", "12h", "13h", "14h", "15h", "16h", "17h", "18h", "19h", "20h", "21h", "22h", "23h"])
 
 			try:
-				chart.download(chartPath)
+				chart.download(self.hoursChart.fullPath)
 			except:
 				pass
 
-			if isFile(chartPath):
+			if isFile(self.hoursChart.fullPath):
 				self.hoursChart.isDownloaded = True
 
 
 			if filteredWords != "":
-				self.wordcloud = Photo(name="wordcloud.png", path=twitterResultsPath)
-				chartPath = os.sep.join([self.wordcloud.path, self.wordcloud.name])
 
-				result = subprocess.run(["wordcloud_cli", "--text", wordsPath, "--imagefile", chartPath, "--contour_color", "white", "--width", "600", "--height", "900", "--background", "white"])
-				self.wordcloud.isDownloaded = True
+				imageWidth = 600
+				imageHeight = 900
+
+				self.wordcloud = Photo(name="wordcloud", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
+
+				try:
+					result = subprocess.run(["wordcloud_cli", "--text", wordsPath, "--imagefile", self.wordcloud.fullPath, "--contour_color", "white", "--width", str(imageWidth), "--height", str(imageHeight), "--background", "white"])
+				except:
+					pass
+
+				if isFile(self.wordcloud.fullPath):
+					self.wordcloud.isDownloaded = True
 
 
 class Hash:
@@ -583,7 +618,7 @@ class Wikipedia(Website):
 		soup = bs(page, 'lxml')
 
 		# Remove all the unwanted texts (example: Edit button)
-		tagsToRemove = soup.select(".mw-editsection, .toc, .reference, .need_ref_tag, .mw-cite-backlink, .bandeau-niveau-detail, .bandeau-portail, small, sup, style, .API.nowrap")
+		tagsToRemove = soup.select(".mw-editsection, .toc, .reference, .need_ref_tag, .mw-cite-backlink, .bandeau-niveau-detail, .bandeau-portail, small, sup, style, .API.nowrap, a.external.text")
 
 		# For all the found tags
 		for tag in tagsToRemove:
@@ -592,7 +627,6 @@ class Wikipedia(Website):
 
 		# Select only the interesting part
 		paragraphs = soup.select("p")
-		paragraphs[-1].decompose()
 
 		if len(paragraphs) != 0:
 
@@ -1007,17 +1041,17 @@ def main(argv):
 	identity = ""
 
 	if "firstname" in data.keys():
-		identity += data["firstname"]
+		identity += data["firstname"].title()
 
 	if "middlename" in data.keys(): 
 		if identity != "":
 			identity += " "
-		identity += " ".join(data["middlename"])
+		identity += " ".join(data["middlename"].title())
 
 	if "lastname" in data.keys():
 		if identity != "":
 			identity += " "
-		identity += data["lastname"]
+		identity += data["lastname"].title()
 
 	for nameSource in ["username", "email", "phone", "twitter", "instagram"]:
 		if identity == "":

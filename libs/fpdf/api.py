@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-import os
+import os, datetime
 
 from . import FPDF
 
@@ -34,16 +34,18 @@ fontSize = {
 	"veryVeryLarge": 24
 }
 
+datetime = datetime.datetime.now().strftime("%Y %B, %d - %H:%M")
 
 def newChapter(title, subtitle):
 
 	pdf.add_page()
+	
 	newLine(20)
-	pdf.set_font(fontFamily, size=fontSize["veryVeryLarge"])
+	pdf.set_font(fontFamily, 'B', size=fontSize["veryVeryLarge"])
 	pdf.multi_cell(0, 10, txt=title, align="C")
-	pdf.set_font(fontFamily, 'B', size=fontSize["large"])
+	
+	pdf.set_font(fontFamily, size=fontSize["large"])
 	pdf.multi_cell(0, 5, txt=subtitle, align="C")
-	pdf.set_font(fontFamily, size=fontSize["normal"])
 
 
 def newSection(top = None, bottom = None):
@@ -99,14 +101,20 @@ def newLine(number = 1):
 
 def newImage(path, size=30, protocol=None, x=None, y=None, link=None):
 
+	if path == None:
+		print("full path of {} is NoneType.".format(link))
+		return
+
 	if protocol == None:
 		protocol = path.split(".").pop().lower()
 
 	allowedImageTypes = ["png", "jpg", "jpeg", "gif"]
 
+	invalidTypeImagePath = os.sep.join([filePath, "images", "invalid_image.png"])
+	invalidTypeImageProtocol = "png"
+
 	if protocol not in allowedImageTypes:
-		path = os.sep.join([filePath, "images", "invalid_image.png"])
-		protocol = "png"
+		path, protocol = (invalidTypeImagePath, invalidTypeImageProtocol)
 
 	if x == None:
 		x = pdf.get_x()
@@ -117,12 +125,11 @@ def newImage(path, size=30, protocol=None, x=None, y=None, link=None):
 	try:
 		pdf.image(path, x, y, size, link=link, type=protocol)
 	except:
-		path = os.sep.join([filePath, "images", "invalid_image.png"])
-		protocol = "png"
+		path, protocol = (invalidTypeImagePath, invalidTypeImageProtocol)
 		pdf.image(path, x, y, size, link=link, type=protocol)
 
 
-def newGallery(images = [], imageSize = 50, spaceBetweenImages = 75, identationBetweenDescriptions = 6, imagesByLine = 3, LineByPage = 3):
+def newGallery(images = [], imageSize = 50, spaceBetweenImages = 75, identationBetweenDescriptions = 7, imagesByLine = 3, LineByPage = 2):
 
 	imagesOnPage = 0
 	imagesOnLine = 0
@@ -131,6 +138,14 @@ def newGallery(images = [], imageSize = 50, spaceBetweenImages = 75, identationB
 	for image in images:
 
 		if image.isDownloaded:
+
+			if imagesOnLine == imagesByLine:
+				newLine(15)	
+				imagesOnLine = 0
+
+			if imagesOnPage == imagesByPage:
+				pdf.add_page()
+				imagesOnPage = 0
 
 			if (image.contents != None) and (len(image.contents) != 0):
 				
@@ -146,20 +161,10 @@ def newGallery(images = [], imageSize = 50, spaceBetweenImages = 75, identationB
 			if imagesOnLine != 0:
 				x = imagesOnLine * spaceBetweenImages
 			
-			imagePath = os.sep.join([image.path, image.name])
-			
-			newImage(imagePath, imageSize, protocol=image.protocol, x=x, y=pdf.get_y() + 1, link=image.url)
+			newImage(image.fullPath, imageSize, protocol=image.protocol, x=x, y=pdf.get_y() + 1, link=image.url)
 
 			imagesOnLine += 1
 			imagesOnPage += 1
-
-			if imagesOnLine == imagesByLine:
-				newLine(15)	
-				imagesOnLine = 0
-
-			if imagesOnPage == imagesByPage:
-				pdf.add_page()
-				imagesOnPage = 0
 
 
 class CustomPDF(FPDF):
@@ -175,14 +180,21 @@ class CustomPDF(FPDF):
 
 	#Footer Definition 
     def footer(self):
-    	#Set position to bottom
-        self.set_y(-10)
- 
- 		#Change font to italic
-        self.set_font(fontFamily, size=fontSize["tiny"])
- 
-        # Add a page number
-        self.cell(0, 10, str(self.page_no()) + " | " + "{nb}", align='R')
+
+    	# Keep the guard page clear
+    	if self.page_no() > 1:
+
+	    	#Set position to bottom
+	        self.set_y(-10)
+	 
+	 		#Change font to italic
+	        self.set_font(fontFamily, size=fontSize["tiny"])
+
+	        # Add date
+	        self.cell(0, 10, datetime, align="L")
+	 
+	        # Add a page number
+	        self.cell(0, 10, str(self.page_no()) + " | " + "{nb}", align='R')
 
 
 def create_pdf(person, resultsPath, identity):
@@ -202,7 +214,7 @@ def create_pdf(person, resultsPath, identity):
 	pdf.add_font(fontFamily, 'I', os.sep.join([filePath, "fonts", "DejaVuSansCondensed-Oblique.ttf"]), uni=True)
 
 	# New page
-	newChapter("INFORMATION REPORT", "OPEN SOURCE INTELLIGENCE")
+	newChapter("INFORMATION REPORT", "O P E N   S O U R C E   I N T E L L I G E N C E")
 
 	# Identity
 
@@ -269,7 +281,7 @@ def create_pdf(person, resultsPath, identity):
 			newLine()
 
 			if (website.qrcode != None) and (website.qrcode.isDownloaded):
-				newImage(os.sep.join([website.qrcode.path, website.qrcode.name]), 30, x=20, y=pdf.get_y(), link = website.url, protocol=website.qrcode.protocol)
+				newImage(website.qrcode.fullPath, 30, x=20, y=pdf.get_y(), link = website.url, protocol=website.qrcode.protocol)
 				newLine()
 
 			if website.__class__.__name__ == "Instagram":
@@ -286,15 +298,16 @@ def create_pdf(person, resultsPath, identity):
 				newValue(indentation=5, description="Followers: {}    Followings: {}    Posts: {}", values=[website.followersCount, website.friendsCount, website.postsCount])
 				newLine()
 				if (website.avatar != None) and (website.avatar.isDownloaded):
-					newImage(os.sep.join([website.avatar.path, website.avatar.name]), 50, x=pdf.get_x()+10, y=100, protocol=website.avatar.protocol, link=website.avatar.url)
+					newImage(website.avatar.fullPath, 50, x=pdf.get_x()+10, y=100, protocol=website.avatar.protocol, link=website.avatar.url)
 				if website.description != None:
 					newValue(indentation=7, description="Biography:\n{}", values=website.description)
 				
 				if (website.avatar != None) or (website.description != None):
 					newLine(10)
 				
-				pdf.add_page()
-				newGallery(website.photos)
+				if len(website.photos) > 0:
+					pdf.add_page()
+					newGallery(website.photos)
 
 
 			elif website.__class__.__name__ == "Twitter":
@@ -307,33 +320,34 @@ def create_pdf(person, resultsPath, identity):
 
 				else:
 					newLine(5)
-					if website.tweetsChart.isDownloaded:
-						newImage(os.sep.join([website.tweetsChart.path, website.tweetsChart.name]), 180, protocol=website.tweetsChart.protocol)
+					if (website.tweetsChart != None) and (website.tweetsChart.isDownloaded):
+						newImage(website.tweetsChart.fullPath, 180, protocol=website.tweetsChart.protocol)
 						newLine(10)
-					if website.repliesChart.isDownloaded:
-						newImage(os.sep.join([website.repliesChart.path, website.repliesChart.name]), 180, protocol=website.repliesChart.protocol)
+					if (website.repliesChart != None) and (website.repliesChart.isDownloaded):
+						newImage(website.repliesChart.fullPath, 180, protocol=website.repliesChart.protocol)
 						newLine(10)
-					if website.retweetsChart.isDownloaded:
-						newImage(os.sep.join([website.retweetsChart.path, website.retweetsChart.name]), 180, protocol=website.retweetsChart.protocol)
+					if (website.retweetsChart != None) and (website.retweetsChart.isDownloaded):
+						newImage(website.retweetsChart.fullPath, 180, protocol=website.retweetsChart.protocol)
 						newLine(10)
-					if website.likesChart.isDownloaded:
-						newImage(os.sep.join([website.likesChart.path, website.likesChart.name]), 180, protocol=website.likesChart.protocol)
+					if (website.likesChart != None) and (website.likesChart.isDownloaded):
+						newImage(website.likesChart.fullPath, 180, protocol=website.likesChart.protocol)
 						newLine(10)
 						pdf.add_page()
-					if website.hoursChart.isDownloaded:
-						newImage(os.sep.join([website.hoursChart.path, website.hoursChart.name]), 180, x=10, protocol=website.hoursChart.protocol)
+					if (website.hoursChart != None) and (website.hoursChart.isDownloaded):
+						newImage(website.hoursChart.fullPath, 180, x=10, protocol=website.hoursChart.protocol)
 						newLine(20)
-					if website.wordcloud.isDownloaded:
+					if (website.wordcloud != None) and (website.wordcloud.isDownloaded):
 						pdf.add_page()
-						newImage(os.sep.join([website.wordcloud.path, website.wordcloud.name]), 150, x=30, y=pdf.get_x() + 30, protocol=website.wordcloud.protocol)
+						newImage(website.wordcloud.fullPath, 150, x=30, y=pdf.get_x() + 30, protocol=website.wordcloud.protocol)
 
 			elif website.__class__.__name__ == "Wikipedia":
 
 				newLine(5)
 				newValue(indentation=0, values=website.text)
-				pdf.add_page()
 				
-				newGallery(website.images)
+				if len(website.images) > 0:
+					pdf.add_page()
+					newGallery(website.images)
 
 
 			else:
