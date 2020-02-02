@@ -1,26 +1,26 @@
 # ESIEA | OSINT Project
 
-This project is an OSINT tool based on open source python scripts (called "modules" in the following text).
+This project is an open source intelligence (OSINT) tool. Using personal data (name, e-mail address...), it collects open informations (photos, texts...) from different web sources and writes them all in a JSON file and a PDF report.
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
 ### Requirements
 
-The main script uses Python 3 so, you must download the latest version of Python 3. Some modules still use Python 2 so, you must also download the latest version of Phython 2.
+The main script uses Python 3. You must download the latest version of Python 3. 
 
 * https://www.python.org/downloads/source/
 
 Some modules have requirements, the setup script download the requirements automatically during its execution. Python requirements are downloaded with the paquet manager "Pip".
-Download pip with the following command:
+Download pip with the following (Linux) command:
 ```
 sudo apt install python3-pip
 ```
 
 ### Installing
 
-Clone or download the project in your local machine.
+Clone or download the project on your local machine.
 ```
 git clone https://github.com/FlorentGuyon/esiea-osint
 ```
@@ -32,11 +32,9 @@ Run the setup script as follows:
 sudo python3 setup.py
 ```
 
-Keep this window open during the scans to keep the servers up.
-
 ### Running
 
-When the requirements are downloaded and the servers are up, you can run (on another shell) the main script as follows to see the help page:
+When the requirements are downloaded, you can see the help page of the main script as follows:
 ```
 python3 scan.py -h
 ```
@@ -48,4 +46,4 @@ python3 scan.py -h
 
 ## Acknowledgments
 
-Today, this tool is developed for educational purposes only.
+*This tool is developed for educational purposes only.*

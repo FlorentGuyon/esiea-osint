@@ -266,7 +266,7 @@ def create_pdf(person, resultsPath, identity):
 		for phone in person.phoneNumbers:
 			newLine(2)
 			location = ", ({})".format(phone.location) if phone.location != None else ""
-			newValue(indentation=1, description="{} ({})\nCountry: {}{}", values=[phone.number, phone.deviceType, phone.country, location])
+			newValue(indentation=1, description="{} ({})\n{}{}", values=[phone.number, phone.deviceType, phone.country, location])
 
 
 	# Accounts

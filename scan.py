@@ -75,6 +75,11 @@ class Phone:
 		self.location = results["location"]
 
 
+	def __repr__(self):
+
+		return json.dumps(self.__dict__, indent=4, separators=(',', ': '), cls=CustomEncoder)
+
+
 class Photo:
 
 	url = None
@@ -161,7 +166,7 @@ class Photo:
 
 	def __repr__(self):
 
-		return json.dumps(self.__dict__, indent=4, cls=CustomEncoder)
+		return json.dumps(self.__dict__, indent=4, separators=(',', ': '), cls=CustomEncoder)
 
 
 class Website:
@@ -247,6 +252,11 @@ class Website:
 				self.images.append(Photo(url=imageUrl, name=imageName, path=self.imagesPath, contents=imageContents, protocol=imageType))
 
 
+	def __repr__(self):
+
+		return json.dumps(self.__dict__, indent=4, separators=(',', ': '), cls=CustomEncoder)
+
+
 class Instagram(Website):
 
 	name = None
@@ -314,8 +324,7 @@ class Instagram(Website):
 		if data["profilPhoto"] != None:
 
 			path = os.sep.join([photosPath, ".."])
-			name = "{}.jpg".format(self.username)
-			self.avatar = Photo(url=data["profilPhoto"], path=path, name=name)
+			self.avatar = Photo(url=data["profilPhoto"], path=path, name=self.username, protocol="jpg")
 
 		for photo in data["photos"]:
 
@@ -328,6 +337,11 @@ class Instagram(Website):
 			contents = photo["view"] if photo["view"] != "" else None
 
 			self.photos.append(Photo(url=url, date=date, location=location, path=photosPath, name=name, contents=contents, protocol="jpg"))		
+
+
+	def __repr__(self):
+
+		return json.dumps(self.__dict__, indent=4, separators=(',', ': '), cls=CustomEncoder)
 
 
 class Twitter(Website):
@@ -569,24 +583,29 @@ class Twitter(Website):
 					self.wordcloud.isDownloaded = True
 
 
+	def __repr__(self):
+
+		return json.dumps(self.__dict__, indent=4, separators=(',', ': '), cls=CustomEncoder)
+
+
 class Hash:
 
 	value = None
 	protocol = None
-	crack = None
+	clear = None
 
 	def crackHash(self):
 
 		results = leaked().hash(self.value)
 
 		if results != None:
-			(self.crack, self.protocol) = results
+			(self.clear, self.protocol) = results
 
-	def __init__(self, value, protocol = None, crack = None):
+	def __init__(self, value, protocol = None, clear = None):
 
 		self.value = value
 		self.protocol = protocol
-		self.crak = crack
+		self.clear = clear
 
 		if self.value != None:
 			threading.Thread(name="Hash", target=self.crackHash).start()
@@ -679,6 +698,11 @@ class Wikipedia(Website):
 			self.images.append(Photo(name = imageName, url = imageURL, path = imagePath, contents = imageContents, width = imageWidth, height = imageHeight))
 
 
+	def __repr__(self):
+
+		return json.dumps(self.__dict__, indent=4, separators=(',', ': '), cls=CustomEncoder)
+
+
 class Email:
 
 	address = None
@@ -729,6 +753,11 @@ class Email:
 		self.leaks = []
 
 		threading.Thread(name = "Email", target = self.scanLeaks).start()
+
+
+	def __repr__(self):
+
+		return json.dumps(self.__dict__, indent=4, separators=(',', ': '), cls=CustomEncoder)
 
 
 class Person:
@@ -944,7 +973,7 @@ def displayStats():
 
 			lines += ["    ■ {}\t  {}\t| {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
 
-			clear()
+			#clear()
 			print("\n".join(lines))
 			time.sleep(0.1)
 
