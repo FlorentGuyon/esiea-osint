@@ -1,7 +1,7 @@
-__pycache__
+*.pyc
 *.csv
 *.log
 *.db
+*.pkl
 *.db-*
 results/*
-modules/spiderfoot/cache
