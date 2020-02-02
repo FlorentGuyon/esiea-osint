@@ -6,6 +6,7 @@
 import os, json, subprocess, platform, time, requests
 
 from selenium import webdriver as wd
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from webdriver_manager.firefox import GeckoDriverManager
@@ -195,7 +196,10 @@ def doesThisURLExist(url):
 
 def fromUsernameToWebsites(username):
 	
-	browser = wd.Firefox(executable_path = GeckoDriverManager().install())
+	options = Options()
+	options.headless = True
+
+	browser = wd.Firefox(options=options, executable_path = GeckoDriverManager().install())
 
 	browser.minimize_window()
 
