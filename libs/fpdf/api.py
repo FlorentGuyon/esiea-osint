@@ -259,11 +259,11 @@ def create_pdf(person, resultsPath, identity):
 
 
 	# Phones
-	if len(person.phoneNumbers) > 0:
+	if len(person.phones) > 0:
 
 		newSection("PHONE NUMBERS")
 
-		for phone in person.phoneNumbers:
+		for phone in person.phones:
 			newLine(2)
 			location = ", ({})".format(phone.location) if phone.location != None else ""
 			newValue(indentation=1, description="{} ({})\n{}{}", values=[phone.number, phone.deviceType, phone.country, location])
@@ -275,8 +275,8 @@ def create_pdf(person, resultsPath, identity):
 
 		for website in person.websites:
 
-			category = " (" + website.serviceCategory + ")" if (website.serviceCategory != None) else ""
-			newSection(website.serviceName + category)
+			category = " (" + website.category + ")" if (website.category != None) else ""
+			newSection(website.name + category)
 			newLink(website.url, align="R")
 			newLine()
 
@@ -305,9 +305,9 @@ def create_pdf(person, resultsPath, identity):
 				if (website.avatar != None) or (website.description != None):
 					newLine(10)
 				
-				if len(website.photos) > 0:
+				if len(website.images) > 0:
 					pdf.add_page()
-					newGallery(website.photos)
+					newGallery(website.images)
 
 
 			elif website.__class__.__name__ == "Twitter":
