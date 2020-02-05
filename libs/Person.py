@@ -86,14 +86,14 @@ class Person:
 			# Spiderfoot is very slow and the results are almost all wrong
 			#threading.Thread(name="Person", target=self.scanName).start()
 
-	def addPhones(self, newPhones):
+	def addPhones(self, phones):
 
-		if type(newPhones) is str:
-			newPhones = [newPhones]
+		if type(phones) is str:
+			phones = [phones]
 
-		for newNumber in newPhones:
-			if newNumber not in [phone.number for phone in self.phones]:
-				self.phones.append(Phone(newNumber))
+		for number in phones:
+			if number not in [savedPhone.number for savedPhone in self.phones]:
+				self.phones.append(Phone(number))
 
 
 	def addEmails(self, emails):
@@ -109,10 +109,12 @@ class Person:
 		if type(usernames) is str:
 			usernames = [usernames]
 
+		usernames = [username for username in usernames if username not in self.usernames]
+
+		self.usernames += usernames
+
 		for username in usernames:
-			if username not in self.usernames:
-				self.usernames.append(username) 
-				threading.Thread(name="Username", target=self.scanUsername, kwargs={"username": username}).start()
+			threading.Thread(name="Username", target=self.scanUsernames, args=[username]).start()
 
 
 	def addWebsite(self, website):
@@ -127,7 +129,7 @@ class Person:
 			self.websites.insert(0, website)
 
 
-	# Scan the name with spiderfoot
+	# Scan the name with spiderfoot: NOT USED
 	def scanName(self):
 		# Set the firstname and last name as a string
 		fullName = "{} {}".format(self.firstname, self.lastname)
@@ -184,12 +186,13 @@ class Person:
 				self.addWebsite(Website(name = kwargs["website"]["name"], url = kwargs["website"]["link"], username = kwargs["website"]["username"]))
 
 
-	def scanUsername(self, **kwargs):
+	def scanUsernames(self, *args):
 
-		websites = fromUsernameToWebsites(kwargs["username"])
+		username = args[0]
+		websites = fromUsernameToWebsites(username)
 
 		for website in websites:
-			website["username"] = kwargs["username"]
+			website["username"] = username
 			if website["link"] not in [website.url for website in self.websites]:
 				threading.Thread(name="URL", target=self.verifyWebsite, kwargs={"website": website}).start()
 

@@ -72,6 +72,12 @@ class Twitter(Website):
 		except:
 			return
 
+		self.extractText()
+		self.createCharts()	
+
+
+	def extractText(self):
+
 		if isFile(self.tweetsPath):
 			self.isPrivate = False
 			with open(self.tweetsPath, "r", encoding="utf-8") as tweets:
@@ -81,8 +87,6 @@ class Twitter(Website):
 					break
 		else:
 			self.isPrivate = True
-
-		self.createCharts()		
 
 
 	def createCharts(self):

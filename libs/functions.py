@@ -236,12 +236,9 @@ def fromUsernameToWebsites(username):
 		if account.select_one("a") != None:
 			link = account.select_one("a")["href"]
 
-		elif username.count(".") == 0:
+		else:
 			website = username + website
 			link = "https://www." + website
-
-		else:
-			continue
 
 		websites.append({"name": website, "link": link})
 

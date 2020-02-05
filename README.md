@@ -39,6 +39,16 @@ When the requirements are downloaded, you can see the help page of the main scri
 python3 scan.py -h
 ```
 
+### Getting results
+
+When all the scans are done, the absolut path to the PDF report will be printed. The JSON file containing all the collected data will be at the same location.
+
+### To go further
+
+The HTML documentation of the project is available in the docs folder
+
+* https://github.com/FlorentGuyon/esiea-osint/docs/html/index.html
+
 ## Authors
 
 * **Florent Guyon** - *5th-year Digital Sciences Student*.

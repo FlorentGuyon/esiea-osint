@@ -47,12 +47,19 @@ class Instagram(Website):
 
 		threading.Thread(name="Website", target=self.extractData).start()
 
+
 	def extractData(self):
 
 		data = extractInstagram(self.url)
 
 		if data["username"] == None:
 			return
+
+		self.extractText(data)
+		self.extractImages(data)
+
+
+	def extractText(self, data):
 
 		self.name = data["name"]
 		self.username = data["username"]
@@ -69,6 +76,9 @@ class Instagram(Website):
 
 		if data["phone"] != None:
 			self.phone = Phone(data["phone"])
+
+
+	def extractImages(self, data):
 
 		self.imagesPath = os.sep.join([getResultsPath(), "Instagram", self.username, "posts"])
 
