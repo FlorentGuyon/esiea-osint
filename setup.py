@@ -23,10 +23,10 @@ if sys.version_info[0] < 3:
     print("Please, use at least Python 3.6")
     # Quit the program
     exit()
-else if (sys.version_info[0] == 3) and (sys.version_info[1] < 6):
+elif (sys.version_info[0] == 3) and (sys.version_info[1] < 6):
 	print("Please, use at least Python 3.6")
-    # Quit the program
-    exit()
+	# Quit the program
+	exit()
 else:
 	# If the current os is a windows
 	if platform.system() == "Windows":
