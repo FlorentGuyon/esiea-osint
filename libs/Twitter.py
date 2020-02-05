@@ -22,6 +22,10 @@ import json
 # CHARTS CREATION
 import pygooglechart
 
+# MULTITHREADING
+import subprocess
+
+
 #_____FILE_____________________CLASS___
 from .Website 	 		import Website
 from .Photo			 	import Photo
@@ -39,14 +43,9 @@ class Twitter(Website):
 
 		Website.__init__(self, name = "Twitter", category = "social", url = url, username = username, defaultExtraction = False)
 
-		twintPath = os.sep.join([getResultsPath(), self.name, self.username])
-
-		if not os.path.exists(twintPath):
-			os.makedirs(twintPath)
-
 		self.userId = None
 		self.isPrivate = None
-		self.tweetsPath = os.sep.join([twintPath, "tweets.json"])
+		self.tweetsPath = os.sep.join([self.imagesPath, "tweets.json"])
 		self.tweetsChart = None
 		self.repliesChart = None
 		self.retweetsChart = None
@@ -63,7 +62,7 @@ class Twitter(Website):
 		c.Username = self.username
 		c.Store_json = True
 		c.Output = self.tweetsPath
-		c.Resume = os.sep.join([getResultsPath(), self.name, self.username, "resume.txt"])
+		c.Resume = os.sep.join([self.imagesPath, "resume.txt"])
 		c.Hide_output = True
 
 		try:
