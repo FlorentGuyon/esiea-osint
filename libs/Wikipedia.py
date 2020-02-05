@@ -23,7 +23,7 @@ from .Photo			 	import Photo
 from .CustomEncoder 	import CustomEncoder
 
 #_____FILE_________________FUNCTIONS_____
-from libs.config 	import getResultsPath
+from .utils		 	import getResultsPath
 
 
 class Wikipedia(Website):

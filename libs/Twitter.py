@@ -27,9 +27,8 @@ from .Website 	 		import Website
 from .Photo			 	import Photo
 from .CustomEncoder 	import CustomEncoder
 
-#_____FILE_____________________FUNCTIONS_____
-from libs.config 		import getResultsPath
-from libs.functions 	import isFile
+#_____FILE_____________________FUNCTIONS_____________
+from .utils 			import isFile, getResultsPath
 
 
 class Twitter(Website):

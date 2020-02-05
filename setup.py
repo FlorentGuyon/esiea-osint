@@ -1,40 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-### IMPORTS -----------------------------------------------------------------------------------------------------------------------------------------
 
-import os, sys, subprocess, math, platform
+# OS CALLS
+import os
+
+# SYSTEM CALLS
+import sys
+
+# MULTITHREADING
+import subprocess
+
+# MATHEMATICAL CEIL
+import math
+
+# OS DETECTION
+import platform
+
+
+#____FILE___________________FUNCTIONS_
+from libs.utils		 import clear
+
 
 # Check the current version of Python
-if sys.version_info[0] < 3:
-    print("Please, use Python 3.")
-    # Quit the program
-    exit()
-
-from libs.functions import clear
-
-# Ask for the path to python 2
-#python2 = None
-
-#while python2 == None:
-	
-#	python2 = input("\n Write the alias (py -2, python2...) or the absolute path to python2: ")
-	
-#	try:
-#		returnCode = subprocess.call(" ".join([python2, "--version"]))
-
-#	except:
-#		print("The alias or absolute path \"{}\" is invalid".format(python2))
-#		python2 = None
-
+checkPythonVersion()
 clear()
 
-# List of modules using python 2
-#python2Modules = ["spiderfoot"]
-
-suspendedModules = ["spiderfoot"]
-
-### MAIN --------------------------------------------------------------------------------------------------------------------------------------------
 
 # Absolut path to the modules directory
 modulesPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "modules"])
@@ -48,7 +39,7 @@ modulesList[0], modulesList[pipIndex] = modulesList[pipIndex], modulesList[0]
 # If there at least one module
 if len(modulesList) > 0:
 	# Print the banner
-	print(" Download of requirements:\n")
+	print(" Download/Update requirements:\n")
 	# Lenght of the longest module name for esthetical printing purpose
 	longestModuleName = max(modulesList, key=len)
 
@@ -75,7 +66,7 @@ if len(modulesList) > 0:
 				# For each package in the list
 				for package in packages:
 					# Set the command
-					command = "{} -m pip install --upgrade {}".format(sys.executable, package) #(sys.executable if module not in python2Modules else python2) + " -m pip install --upgrade " + package
+					command = "{} -m pip install --upgrade {}".format(sys.executable, package)
 					# Check for linux systems
 					if platform.system() == "Linux":
 						# Add a sudo argument
@@ -105,14 +96,3 @@ if len(modulesList) > 0:
 # If no modules fond
 else:
 	print("No modules found at {}.".format(modulesPath))
-
-# Set the path to the spiderfoot module server
-#spiderfootServerPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "modules", "spiderfoot", "sf.py"])
-# Start the spiderfoot module server
-#spiderfootServer = subprocess.Popen(python2.split(" ") + [spiderfootServerPath], stdout=open(os.devnull, "wb"), stderr=open(os.devnull, "wb"))
-#fatalError("Impossible to start the spiderfoot server. Make sure that there is no other instance of sf.py running and that no other program use the port number 5001.")
-#input("\n Servers are on. Keep this process open until you finished all your scans. Then press 'Enter'\n")
-# Close the spiderfoot module server
-#spiderfootServer.terminate()
-# Display end message
-#print(" Servers are off. You can quit this process.")

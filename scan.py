@@ -28,23 +28,13 @@ from libs.Person 	import Person
 
 
 #_____FILE_____________________FUNCTIONS_
-from libs.functions 	import *
-from libs.config 		import *
+from libs.utils		 	import *
 
 
 
 stop = False
 threadTypes = ["Person", "Email", "Hash", "Phone", "Website", "Photo", "Username", "URL"]
 
-
-
-def checkPythonVersion():
-
-	# Check the current version of Python
-	if sys.version_info[0] < 3:
-	    print("Please, use Python 3.")
-	    # Quit the program
-	    exit()
 
 
 def startStatsDisplay():
@@ -88,7 +78,7 @@ def printStats():
 
 			lines += ["    ■ {}\t  {}\t| {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
 
-			clear()
+			#clear()
 			print("\n".join(lines))
 			time.sleep(0.1)
 
@@ -253,6 +243,3 @@ if __name__ == "__main__":
 
 	# EXPORT THE RESULTS AS A JSON FILE
 	target.jsonExport()
-
-## ------------------------------------------------------------------------------------------------
-#cls & python "ESIEA\5A\PST5 - OSINT\POC\scan.py" -f "emmanuel" -l "macron" -p "0637619800" -e "example@example.com"

@@ -25,16 +25,14 @@ import pygooglechart
 # WEB DONWLOADING
 from download import download
 
-# UTILS
-from libs.functions import isFile
 
 #_____FILE_____________________CLASS___
 from .Photo	 			import Photo
 from .CustomEncoder 	import CustomEncoder
 
 
-#_____FILE_________________FUNCTIONS_____
-from libs.config 	import getResultsPath
+#_____FILE_________________FUNCTIONS_____________
+from .utils		 	import isFile, getResultsPath
 
 
 class Website:

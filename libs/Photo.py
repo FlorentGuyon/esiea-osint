@@ -13,12 +13,13 @@ import json
 # WEB DONWLOADING
 from download import download
 
-# UTILS
-from libs.functions import doesThisURLExist, isFile
-
 
 #_____FILE_____________________CLASS__
 from .CustomEncoder 	import CustomEncoder
+
+
+#_____FILE_____________________FUNCTIONS_______________
+from .utils				import doesThisURLExist, isFile
 
 
 class Photo:
