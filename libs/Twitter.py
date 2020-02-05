@@ -125,6 +125,7 @@ class Twitter(Website):
 			filteredWords = " ".join([key for key, value in occurences.items() if value > 7])
 			wordsPath = os.sep.join([self.imagesPath, "words.txt"])
 
+
 			with open(wordsPath, 'w'): pass
 			with open(wordsPath, "w", encoding="utf-8") as file:
 				file.write(filteredWords)

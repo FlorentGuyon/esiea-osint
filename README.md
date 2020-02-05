@@ -50,6 +50,11 @@ However, for a target's first scan, huge Twitter accounts can take up to 20 minu
 A new folder "results" will contain all the collected data.
 When all the scans will be finished, the absolut path to the PDF report will be printed, the JSON file containing all the collected data will be at the same location.
 
+### Getting results
+
+A new folder "results" will contain all the collected data.
+When all the scans will be finished, the absolut path to the PDF report will be printed, the JSON file containing all the collected data will be at the same location.
+
 ### To go further
 
 The documentation of the project is available in the "docs" folder as HTML web site.

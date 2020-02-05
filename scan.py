@@ -197,7 +197,9 @@ def parseArgs(argv):
 	if "middlename" in data.keys(): 
 		if identity != "":
 			identity += " "
+
 		identity += " ".join(data["middlename"]).title()
+
 
 	if "lastname" in data.keys():
 		if identity != "":
