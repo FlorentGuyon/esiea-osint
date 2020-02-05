@@ -42,6 +42,9 @@ When the requirements are downloaded, you can see the help page of the main scri
 python3 scan.py -h
 ```
 
+A scan usually takes up to 5 minutes.
+However, for a target's first scan, huge Twitter accounts can take up to 20 minutes 
+
 ### Getting results
 
 A new folder "results" will contain all the collected data.

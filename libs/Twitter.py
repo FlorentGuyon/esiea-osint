@@ -39,7 +39,7 @@ class Twitter(Website):
 
 		Website.__init__(self, name = "Twitter", category = "social", url = url, username = username, defaultExtraction = False)
 
-		twintPath = os.sep.join([getResultsPath(), "twitter", self.username])
+		twintPath = os.sep.join([getResultsPath(), self.name, self.username])
 
 		if not os.path.exists(twintPath):
 			os.makedirs(twintPath)
@@ -63,7 +63,7 @@ class Twitter(Website):
 		c.Username = self.username
 		c.Store_json = True
 		c.Output = self.tweetsPath
-		c.Resume = os.sep.join([getResultsPath(), "twitter", self.username, "resume.txt"])
+		c.Resume = os.sep.join([getResultsPath(), self.name, self.username, "resume.txt"])
 		c.Hide_output = True
 
 		try:
@@ -92,7 +92,6 @@ class Twitter(Website):
 
 		datetime, tweets_count, replies_count, retweets_count, likes_count = [], [], [], [], []
 		
-		twitterResultsPath = os.sep.join([getResultsPath(), "Twitter", self.username])
 		words = ""
 		data = {}
 		hours = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -124,7 +123,7 @@ class Twitter(Website):
 
 			occurences = dict(collections.Counter(words.split(" ")))
 			filteredWords = " ".join([key for key, value in occurences.items() if value > 7])
-			wordsPath = os.sep.join([getResultsPath(), "twitter", self.username, "words.txt"])
+			wordsPath = os.sep.join([self.imagesPath, "words.txt"])
 
 			with open(wordsPath, 'w'): pass
 			with open(wordsPath, "w", encoding="utf-8") as file:
@@ -145,7 +144,7 @@ class Twitter(Website):
 			imageWidth = 600
 			imageHeight = 150
 
-			self.tweetsChart = Photo(name="tweets", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
+			self.tweetsChart = Photo(name="tweets", protocol="png", path=self.imagesPath, width=imageWidth, height=imageHeight)
 
 			maxValue = max(tweets_count)
 			
@@ -166,7 +165,7 @@ class Twitter(Website):
 			imageWidth = 600
 			imageHeight = 150
 
-			self.repliesChart = Photo(name="replies", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
+			self.repliesChart = Photo(name="replies", protocol="png", path=self.imagesPath, width=imageWidth, height=imageHeight)
 
 			maxValue = max(replies_count)
 			
@@ -187,7 +186,7 @@ class Twitter(Website):
 			imageWidth = 600
 			imageHeight = 150
 
-			self.retweetsChart = Photo(name="retweets", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
+			self.retweetsChart = Photo(name="retweets", protocol="png", path=self.imagesPath, width=imageWidth, height=imageHeight)
 
 			maxValue = max(retweets_count)
 			
@@ -208,7 +207,7 @@ class Twitter(Website):
 			imageWidth = 600
 			imageHeight = 150
 
-			self.likesChart = Photo(name="likes", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
+			self.likesChart = Photo(name="likes", protocol="png", path=self.imagesPath, width=imageWidth, height=imageHeight)
 
 			maxValue = max(likes_count)
 			
@@ -229,7 +228,7 @@ class Twitter(Website):
 			imageWidth = 600
 			imageHeight = 200
 
-			self.hoursChart = Photo(name="hours", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
+			self.hoursChart = Photo(name="hours", protocol="png", path=self.imagesPath, width=imageWidth, height=imageHeight)
 		
 			maxValue = max(hours)
 			
@@ -253,7 +252,7 @@ class Twitter(Website):
 				imageWidth = 600
 				imageHeight = 900
 
-				self.wordcloud = Photo(name="wordcloud", protocol="png", path=twitterResultsPath, width=imageWidth, height=imageHeight)
+				self.wordcloud = Photo(name="wordcloud", protocol="png", path=self.imagesPath, width=imageWidth, height=imageHeight)
 
 				try:
 					result = subprocess.run(["wordcloud_cli", "--text", wordsPath, "--imagefile", self.wordcloud.fullPath, "--contour_color", "white", "--width", str(imageWidth), "--height", str(imageHeight), "--background", "white"])

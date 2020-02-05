@@ -78,7 +78,7 @@ def printStats():
 
 			lines += ["    ■ {}\t  {}\t| {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
 
-			#clear()
+			clear()
 			print("\n".join(lines))
 			time.sleep(0.1)
 
@@ -197,7 +197,7 @@ def parseArgs(argv):
 	if "middlename" in data.keys(): 
 		if identity != "":
 			identity += " "
-		identity += " ".join(data["middlename"].title())
+		identity += " ".join(data["middlename"]).title()
 
 	if "lastname" in data.keys():
 		if identity != "":

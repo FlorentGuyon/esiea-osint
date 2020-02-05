@@ -18,13 +18,24 @@ import math
 import platform
 
 
-#____FILE___________________FUNCTIONS_
-from libs.utils		 import clear, checkPythonVersion
-
-
 # Check the current version of Python
-checkPythonVersion()
-clear()
+if sys.version_info[0] < 3:
+    print("Please, use at least Python 3.6")
+    # Quit the program
+    exit()
+else if (sys.version_info[0] == 3) and (sys.version_info[1] < 6):
+	print("Please, use at least Python 3.6")
+    # Quit the program
+    exit()
+else:
+	# If the current os is a windows
+	if platform.system() == "Windows":
+		# Use specific command
+		os.system("cls")
+	# Else if the current os is not a windows
+	else:
+		# Use generic command
+		os.system("clear")
 
 
 # Absolut path to the modules directory
