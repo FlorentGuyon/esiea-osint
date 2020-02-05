@@ -19,7 +19,7 @@ import platform
 
 
 #____FILE___________________FUNCTIONS_
-from libs.utils		 import clear
+from libs.utils		 import clear, checkPythonVersion
 
 
 # Check the current version of Python
@@ -30,11 +30,11 @@ clear()
 # Absolut path to the modules directory
 modulesPath = os.sep.join([os.path.dirname(os.path.abspath(__file__)), "modules"])
 # List of modules
-modulesList = list(filter(lambda module: module not in suspendedModules, os.listdir(modulesPath)))
+modulesList = os.listdir(modulesPath)
 # Set the index of the pip module
-pipIndex = modulesList.index("pip")
+defaultIndex = modulesList.index("default")
 # Place pip in first place to upgrade its tools
-modulesList[0], modulesList[pipIndex] = modulesList[pipIndex], modulesList[0]
+modulesList[0], modulesList[defaultIndex] = modulesList[defaultIndex], modulesList[0]
 
 # If there at least one module
 if len(modulesList) > 0:

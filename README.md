@@ -1,6 +1,8 @@
 # ESIEA | OSINT Project
 
-This project is an open source intelligence (OSINT) tool. Using personal data (name, e-mail address...), it collects open informations (photos, texts...) from different web sources and writes them all in a JSON file and a PDF report.
+This project is an open source intelligence (OSINT) tool. From personal data (name, e-mail address...), it collects open informations (photos, texts...) from different web sources and writes them all in a JSON file and a PDF report.
+
+This tool works on Linux, Windows and Mac.
 
 ## Getting Started
 
@@ -8,7 +10,8 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Requirements
 
-The main script uses Python 3. You must download the latest version of Python 3. 
+The main script uses Python 3.6
+You must download the latest version of Python 3 (at least version 3.6). 
 
 * https://www.python.org/downloads/source/
 
@@ -20,7 +23,7 @@ sudo apt install python3-pip
 
 ### Installing
 
-Clone or download the project on your local machine.
+Clone (or download and unzip) the project on your local machine.
 ```
 git clone https://github.com/FlorentGuyon/esiea-osint
 ```
@@ -46,7 +49,7 @@ When all the scans will be finished, the absolut path to the PDF report will be 
 
 ### To go further
 
-The HTML documentation of the project is available in the docs folder
+The documentation of the project is available in the "docs" folder as HTML web site.
 
 ## Authors
 
