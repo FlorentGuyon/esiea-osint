@@ -39,8 +39,7 @@ sudo python3 setup.py
 
 #### User interface
 
-Execute the file "interface.py" with a double click
-Click on the button "Install requirements". This action has to be done once by computer
+Execute the file "interface.py" with a double click, click on the button "Install requirements". This action has to be done once by computer
 
 ### Running
 
@@ -57,11 +56,7 @@ python3 scan.py -h
 
 #### User interface
 
-```
-python3 interface.py
-```
-Execute the file "interface.py" with a double click
-Click on "START", follow the steps one by one, then click on "SCAN".
+Execute the file "interface.py" with a double click, click on "START", follow the steps one by one, then click on "SCAN".
 
 ### Getting results
 
