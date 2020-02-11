@@ -19,21 +19,17 @@ import time
 # ASYCHRONOUS COMMUNICATION
 import asyncio
 
-# DATE MANIPULATION
-import datetime
-
 
 #____FILE__________________CLASS_
 from libs.Person 	import Person
 
 
-#_____FILE_____________________FUNCTIONS_
-from libs.utils		 	import *
+#_____FILE_________________FUNCTIONS_
+from libs.utils		import *
 
 
 
 stop = False
-threadTypes = ["Person", "Email", "Hash", "Phone", "Website", "Photo", "Username", "URL"]
 
 
 
@@ -76,27 +72,11 @@ def printStats():
 				"",
 			]
 
-			lines += ["    ■ {}\t  {}\t| {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in threadTypes]
+			lines += ["    ■ {}\t  {}\t| {}".format(threadType, threadClasses.count(threadType), "■" * threadClasses.count(threadType)) for threadType in getThreadTypes()]
 
 			clear()
 			print("\n".join(lines))
 			time.sleep(0.1)
-
-
-def getCountOfScans():
-
-	return len([thread for thread in threading.enumerate() if thread.name in threadTypes])
-
-
-def askEndOfScans():
-	
-	[thread.join() for thread in threading.enumerate() if thread.name in threadTypes]
-
-
-def waitEndOfScans():
-
-	while getCountOfScans() > 0:
-		askEndOfScans()
 
 
 # Display an help message
@@ -135,14 +115,14 @@ def parseArgs(argv):
 		# Display an help message
 		displayHelp()
 		# Exit the script
-		fatalError("\"" + " ".join(argv) + "\" are not valid arguments.")
+		print("\"" + " ".join(argv) + "\" are not valid arguments.")
 
 	# If the arguments are missing
 	if len(opts) == 0:
 		# Display an help message
 		displayHelp()
 		# Exit the script
-		fatalError("The arguments are missing.")
+		print("The arguments are missing.")
 
 	data = {}
 
@@ -187,36 +167,7 @@ def parseArgs(argv):
 							data[key] = []
 						data[key].append(value.strip())
 					else:
-						print("Warning: {} list is empty.".format(key)) 
-
-	identity = ""
-
-	if "firstname" in data.keys():
-		identity += data["firstname"].title()
-
-	if "middlename" in data.keys(): 
-		if identity != "":
-			identity += " "
-
-		identity += " ".join(data["middlename"]).title()
-
-
-	if "lastname" in data.keys():
-		if identity != "":
-			identity += " "
-		identity += data["lastname"].title()
-
-	for nameSource in ["username", "email", "phone", "twitter", "instagram"]:
-		if identity == "":
-			if nameSource in data.keys(): 
-				identity += data[nameSource][0]
-				break
-
-	if identity == "":
-		identity += datetime.datetime.now().strftime("%d %B %Y %Hh%M %Ss")
-
-	setResultsName(identity)
-	setResultsPath(os.sep.join([os.path.dirname(os.path.abspath(__file__)), "results", getResultsName()]))
+						print("Warning: {} list is empty.".format(key))
 
 	return data
 
@@ -227,6 +178,9 @@ if __name__ == "__main__":
 
 	# PARSE THE ARGUMENTS TO EXTRACT THE PERSONAL DATA
 	data = parseArgs(sys.argv[1:])
+
+	# EXTRACT RESULTS PATH AND NAME FROM DATA
+	setResultsValues(data)
 
 	# START THE THREAD THAT DISPLAYS STATS
 	startStatsDisplay()

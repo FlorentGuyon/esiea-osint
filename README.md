@@ -30,25 +30,38 @@ git clone https://github.com/FlorentGuyon/esiea-osint
 
 ### Configuring
 
+#### Command line
+
 Run the setup script as follows:
 ```
 sudo python3 setup.py
 ```
 
-### Running
+#### User interface
 
-When the requirements are downloaded, you can see the help page of the main script as follows:
-```
-python3 scan.py -h
-```
+Execute the file "interface.py" with a double click
+Click on the button "Install requirements". This action has to be done once by computer
+
+### Running
 
 A scan usually takes up to 5 minutes.
 However, for a target's first scan, huge Twitter accounts can take up to 20 minutes 
 
-### Getting results
+#### Command line
 
-A new folder "results" will contain all the collected data.
-When all the scans will be finished, the absolut path to the PDF report will be printed, the JSON file containing all the collected data will be at the same location.
+When the requirements are downloaded, you can see the help page of the main script as follows:
+
+```
+python3 scan.py -h
+```
+
+#### User interface
+
+```
+python3 interface.py
+```
+Execute the file "interface.py" with a double click
+Click on "START", follow the steps one by one, then click on "SCAN".
 
 ### Getting results
 

@@ -23,6 +23,12 @@ import time
 # WEB REQUESTS
 import requests
 
+# DATE MANIPULATION
+import datetime
+
+# PARALLELIZATION
+import threading
+
 
 #____PACKAGE_______________________________________OBJEECT_________________RENAME_
 from selenium 								import webdriver 			as wd
@@ -36,6 +42,10 @@ from bs4 									import BeautifulSoup 		as bs
 
 resultsPath = None
 resultsName = None
+
+
+def getThreadTypes():
+	return ["Person", "Email", "Hash", "Phone", "Website", "Photo", "Username", "URL"]
 
 
 def getResultsPath():
@@ -54,6 +64,54 @@ def getResultsName():
 def setResultsName(value):
 	global resultsName
 	resultsName = value
+
+
+def setResultsValues(data):
+
+	identity = ""
+
+	if "firstname" in data.keys():
+		identity += data["firstname"].title()
+
+	if "middlename" in data.keys(): 
+		if identity != "":
+			identity += " "
+
+		identity += " ".join(data["middlename"]).title()
+
+
+	if "lastname" in data.keys():
+		if identity != "":
+			identity += " "
+		identity += data["lastname"].title()
+
+	for nameSource in ["username", "email", "phone", "twitter", "instagram"]:
+		if identity == "":
+			if nameSource in data.keys(): 
+				identity += data[nameSource][0]
+				break
+
+	if identity == "":
+		identity += datetime.datetime.now().strftime("%d %B %Y %Hh%M %Ss")
+
+	setResultsName(identity)
+	setResultsPath(os.sep.join([os.path.dirname(os.path.abspath(__file__)), "..", "results", getResultsName()]))
+
+
+def getCountOfScans():
+
+	return len([thread for thread in threading.enumerate() if thread.name in getThreadTypes()])
+
+
+def askEndOfScans():
+	
+	[thread.join() for thread in threading.enumerate() if thread.name in getThreadTypes()]
+
+
+def waitEndOfScans():
+
+	while getCountOfScans() > 0:
+		askEndOfScans()
 
 
 def checkPythonVersion():
