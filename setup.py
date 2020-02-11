@@ -143,10 +143,6 @@ def startSetup():
 						# Print the new progress
 						sys.stdout.write("\b" * 18 + " {}%\t[".format(currentProgress) + ("■" * int(currentProgress / 10)) + (" " * math.ceil((100 - currentProgress) / 10)) + "]{}".format("\n" if packagesCount == currentPackageIndex else ""))
 						sys.stdout.flush()
-			
-			# If no requirements file found
-			else:
-				print("No requirements found for the {} module".format(module))
 
 	# If no modules fond
 	else:

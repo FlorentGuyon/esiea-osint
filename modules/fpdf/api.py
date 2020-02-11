@@ -284,7 +284,7 @@ def create_pdf(person, resultsPath, identity):
 		for website in person.websites:
 
 			category = " (" + website.category + ")" if (website.category != None) else ""
-			newSection(website.name + category)
+			newSection("{}{}".format(website.name, category))
 			newLink(website.url, align="R")
 			newLine()
 

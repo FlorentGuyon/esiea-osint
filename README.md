@@ -16,9 +16,9 @@ You must download the latest version of Python 3 (at least version 3.6).
 * https://www.python.org/downloads/source/
 
 Some modules have requirements, the setup script download the requirements automatically during its execution. Python requirements are downloaded with the paquet manager "Pip".
-Download pip with the following (Linux) command:
+Download pip and some other packages with the following (Linux) command:
 ```
-sudo apt install python3-pip
+sudo apt-get install python3-pip python3-distutils python3-tk python3-pil python3-pil.imagetk
 ```
 
 ### Installing
@@ -37,7 +37,7 @@ Run the setup script as follows:
 sudo python3 setup.py
 ```
 
-#### User interface
+#### Windows User interface
 
 Execute the file "interface.py" with a double click, click on the button "Install requirements". This action has to be done once by computer
 
@@ -54,7 +54,7 @@ When the requirements are downloaded, you can see the help page of the main scri
 python3 scan.py -h
 ```
 
-#### User interface
+#### Windows User interface
 
 Execute the file "interface.py" with a double click, click on "START", follow the steps one by one, then click on "SCAN".
 
